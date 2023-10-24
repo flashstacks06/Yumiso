@@ -1,0 +1,13 @@
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/icudtl.dat
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/flutter_windows.dll
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/AssetManifest.bin
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/AssetManifest.json
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/FontManifest.json
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/fonts/cabin.ttf
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/fonts/MaterialIcons-Regular.otf
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/img/Logo.png
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/img/si.png
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/img/Yumiso_logo.png
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/kernel_blob.bin
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/NOTICES.Z
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/shaders/ink_sparkle.frag
