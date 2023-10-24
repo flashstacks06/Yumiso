@@ -91,8 +91,12 @@ class RouteCheck extends StatelessWidget {
 
   RouteCheck({super.key});
 
+  bool validateButtonStates() {
+    return buttonStates.values.any((value) => value);
+  }
+
   void _navigateToRouteStock(BuildContext context) {
-    bool allButtonsSelected = buttonStates.values.every((value) => value == true);
+    bool allButtonsSelected = validateButtonStates();
 
     if (!allButtonsSelected) {
       showDialog(
@@ -100,7 +104,7 @@ class RouteCheck extends StatelessWidget {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Error'),
-            content: const Text('Por favor, asegúrate de que todos los checks estén seleccionados.'),
+            content: const Text('Por favor, asegúrate de que al menos una opción esté seleccionada en cada par.'),
             actions: [
               ElevatedButton(
                 onPressed: () {
@@ -119,7 +123,6 @@ class RouteCheck extends StatelessWidget {
 
       print('Textfield Content: ${textController.text}');
 
-      // Navegar a la página RouteStock
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => RouteStock()),
@@ -168,7 +171,7 @@ class RouteCheck extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              ButtonPair(text: 'Cleaning'),
+
               ButtonPair(text: 'Showcase'),
               ButtonPair(text: 'Crystals'),
               ButtonPair(text: 'Cabinet'),
@@ -201,7 +204,7 @@ class RouteCheck extends StatelessWidget {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  bool allButtonsSelected = buttonStates.values.every((value) => value == true);
+                  bool allButtonsSelected = validateButtonStates();
 
                   if (allButtonsSelected) {
                     _navigateToRouteStock(context);
@@ -211,7 +214,7 @@ class RouteCheck extends StatelessWidget {
                       builder: (BuildContext context) {
                         return AlertDialog(
                           title: const Text('Error'),
-                          content: const Text('Por favor, asegúrate de que todos los checks estén seleccionados.'),
+                          content: const Text('Por favor, asegúrate de que al menos una opción esté seleccionada en cada par.'),
                           actions: [
                             ElevatedButton(
                               onPressed: () {

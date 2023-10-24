@@ -24,6 +24,11 @@ flutter:
 
   assets:
     - img/
+    - img/mod1.jpg
+    - img/mod2.jpg
+    - img/mod3.jpg
+    - img/mod4.jpg
+    - img/mod5.jpg
 
   fonts:
     - family: Cabin
