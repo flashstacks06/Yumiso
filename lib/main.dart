@@ -23,7 +23,7 @@ class MainApp extends StatelessWidget {
       routes: {
         '/pagina2': (context) => const PaginaDos(),
         '/route1': (context) => RouteCheck(),
-        '/manteinance1': (context) => const Maintenance1(),
+        '/manteinance1': (context) => Manteinance1(),
         '/arcade1': (context) => const Arcade1(),
         //'/pagina3': (context) => const Imagenes(),
       },
@@ -70,7 +70,7 @@ class _MyHomePageState extends State<MyHomePage> {
           pageToNavigate = RouteCheck();
           break;
         case 'Maintenance':
-          pageToNavigate = Maintenance1();
+          pageToNavigate = Manteinance1();
           break;
         case 'Arcade':
           pageToNavigate = Arcade1();

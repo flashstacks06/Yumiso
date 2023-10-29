@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'route_moneybag.dart';
 
 class RouteStock extends StatelessWidget {
   const RouteStock({Key? key});
@@ -9,29 +10,38 @@ class RouteStock extends StatelessWidget {
     double imageSize = MediaQuery.of(context).size.width * 0.3;
 
     for (var i = 1; i <= 5; i++) {
-      final image = Image.asset(
-        'img/mod$i.jpg',
-        fit: BoxFit.cover,
-        height: imageSize,
-        width: imageSize,
+      final image = Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black, width: 2), // Marco negro
+        ),
+        child: Image.asset(
+          'img/mod$i.jpg',
+          fit: BoxFit.cover,
+          height: imageSize,
+          width: imageSize,
+        ),
       );
-      
+
       final title = Text(
         'Mod $i',
-        style: const TextStyle(fontSize: 16, color: Colors.white,fontFamily: 'Cabin',),
+        style: const TextStyle(fontSize: 16, color: Colors.white, fontFamily: 'Cabin'),
         textAlign: TextAlign.center,
       );
-      
+
       final numberEntry = Container(
         width: 65,
         height: 40,
         margin: const EdgeInsets.only(top: 10),
+        decoration: BoxDecoration(
+          color: Colors.white, // Color de fondo blanco
+          borderRadius: BorderRadius.circular(8), // Bordes redondeados (ajusta según lo necesites)
+        ),
         child: const TextField(
           keyboardType: TextInputType.number,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16, color: Colors.black),
           decoration: InputDecoration(
-            border: OutlineInputBorder(),
+            border: InputBorder.none, // Elimina el borde predeterminado del TextField
           ),
         ),
       );
@@ -42,7 +52,7 @@ class RouteStock extends StatelessWidget {
           const SizedBox(height: 10), //Cambia el espacio del texto de cada imagen
           title,
           numberEntry,
-          const SizedBox(height: 20),  //Cambia el espacio entre cada fila de imagenes
+          const SizedBox(height: 20), //Cambia el espacio entre cada fila de imágenes
         ],
       ));
 
@@ -65,7 +75,7 @@ class RouteStock extends StatelessWidget {
                 alignment: Alignment.center,
                 child: const Text(
                   'Stock And Refill',
-                  style: TextStyle(fontSize: 36, color: Colors.white,fontFamily: 'Cabin',),
+                  style: TextStyle(fontSize: 36, color: Colors.white, fontFamily: 'Cabin'),
                 ),
               ),
               const SizedBox(height: 20),
@@ -73,7 +83,7 @@ class RouteStock extends StatelessWidget {
                 alignment: Alignment.center,
                 child: const Text(
                   'Stock',
-                  style: TextStyle(fontSize: 28, color: Colors.white,fontFamily: 'Cabin',),
+                  style: TextStyle(fontSize: 28, color: Colors.white, fontFamily: 'Cabin'),
                 ),
               ),
               const SizedBox(height: 20),
@@ -97,7 +107,7 @@ class RouteStock extends StatelessWidget {
                 alignment: Alignment.center,
                 child: const Text(
                   'Refill',
-                  style: TextStyle(fontSize: 28, color: Colors.white,fontFamily: 'Cabin',),
+                  style: TextStyle(fontSize: 28, color: Colors.white, fontFamily: 'Cabin'),
                 ),
               ),
               const SizedBox(height: 30), // Espacio añadido entre grupos de imágenes
@@ -119,11 +129,14 @@ class RouteStock extends StatelessWidget {
               const SizedBox(height: 20), // Espacio añadido después de las imágenes
               ElevatedButton(
                 onPressed: () {
-                  // Acción a realizar cuando se presiona el botón "Send"
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const MoneybagPage()),
+                    );  
                 },
                 child: const Text('Send'),
               ),
-              const SizedBox(height: 20), 
+              const SizedBox(height: 20),
             ],
           ),
         ),
