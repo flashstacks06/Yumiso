@@ -114,7 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 const SizedBox(height: 10),
                 ConstrainedBox(
-                  constraints: const BoxConstraints.tightFor(width: 200),
+                  constraints: const BoxConstraints.tightFor(width: 200,),
                   child: DropdownButtonFormField<String>(
                     isExpanded: true, // Para ocupar todo el ancho disponible
                     decoration: const InputDecoration(
@@ -140,7 +140,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     },
                     hint: const Text(
                       'Select a Management',
-                      style: TextStyle(color: Color.fromARGB(255, 0, 0, 0), fontSize: 15),
+                      style: TextStyle(color: Color.fromARGB(255, 0, 0, 0), fontSize: 13),
                     ),
                   ),
                 ),
