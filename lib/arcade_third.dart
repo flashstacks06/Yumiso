@@ -61,7 +61,7 @@ class ScrollableGrid extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          for (int i = 0; i < 10; i++)
+                          for (int i = 0; i < 11; i++)
                             SizedBox(
                               width: 200,
                               child: Column(

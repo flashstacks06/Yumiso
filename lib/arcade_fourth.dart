@@ -43,7 +43,7 @@ class ScrollableGrid extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20), 
-              Center(
+              const Center(
                 child: Text(
                   'BSC Maintenance Weekly',
                   style: TextStyle(fontSize: 36, fontFamily: 'Cabin', color: Colors.white),
@@ -60,7 +60,7 @@ class ScrollableGrid extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          for (int i = 0; i < 10; i++)
+                          for (int i = 0; i < 11; i++)
                             SizedBox(
                               width: 200,
                               child: Column(
@@ -100,26 +100,26 @@ class ScrollableGrid extends StatelessWidget {
                                 ],
                               ),
                             const SizedBox(height: 20),
-                            SizedBox(
+                            const SizedBox(
                               height: 100,
                               width: 200,
                               child: TextField(
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                   hintText: 'Enter text',
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 10),
                                 ),
                               ),
                             ),
                             const SizedBox(height: 20),
-                            SizedBox(
+                            const SizedBox(
                               height: 100,
                               width: 200,
                               child: TextField(
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                   hintText: 'Enter text',
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 10),
                                 ),
                               ),
                             ),
