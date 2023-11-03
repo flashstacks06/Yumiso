@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
+import 'arcade_second.dart';
 
 void main() {
   runApp(const Arcade1());
 }
 
 class Arcade1 extends StatelessWidget {
-  const Arcade1({Key? key}) : super(key: key);
+  const Arcade1({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const ScrollableGrid(),
+      home: ScrollableGrid(),
     );
   }
 }
 
 class ScrollableGrid extends StatelessWidget {
-  const ScrollableGrid({Key? key}) : super(key: key);
+  const ScrollableGrid({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +31,7 @@ class ScrollableGrid extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20), // Espacio entre el título y los elementos
-            Center(
+            const Center(
               child: Text(
                 'Arcade',
                 style: TextStyle(fontSize: 36, fontFamily: 'Cabin', color: Colors.white),
@@ -38,13 +39,13 @@ class ScrollableGrid extends StatelessWidget {
             ),
             const SizedBox(height: 30), // Espacio entre el título y los elementos
             Center(
-              child: Container(
+              child: SizedBox(
                 width: 150, // Ajusta el ancho del contenedor
                 height: 50, // Ajusta el alto del contenedor
                 child: TextField(
                   readOnly: true,
                   controller: TextEditingController(text: 'CEDI PUE'),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     prefixStyle: TextStyle(fontWeight: FontWeight.bold),
                     contentPadding: EdgeInsets.symmetric(horizontal: 10),
@@ -72,7 +73,7 @@ class ScrollableGrid extends StatelessWidget {
                               children: [
                                 Text(
                                   textos[i],
-                                  style: TextStyle(fontSize: 28, fontFamily: 'Cabin', color: Colors.white),
+                                  style: const TextStyle(fontSize: 28, fontFamily: 'Cabin', color: Colors.white),
                                   textAlign: TextAlign.center,
                                 ),
                                 const SizedBox(height: 10),
@@ -104,14 +105,14 @@ class ScrollableGrid extends StatelessWidget {
                               ],
                             ),
                             const SizedBox(height: 20),
-                          SizedBox(
+                          const SizedBox(
                             height: 100,
                             width: 200,
                             child: TextField(
                               decoration: InputDecoration(
                                 border: OutlineInputBorder(),
                                 hintText: 'Enter text',
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                                contentPadding: EdgeInsets.symmetric(horizontal: 10),
                               ),
                             ),
                           ),
@@ -127,9 +128,12 @@ class ScrollableGrid extends StatelessWidget {
             Center(
                       child: ElevatedButton(
                         onPressed: () {
-                          // Lógica cuando se presiona el botón "Send"
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const Arcade2()),
+                          );                        
                         },
-                        child: Text('Send'),
+                        child: const Text('Send'),
                       ),
                     ),
                   ],
