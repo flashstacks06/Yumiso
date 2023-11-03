@@ -3,15 +3,13 @@ import 'package:flutter/material.dart';
 import 'segunda.dart';
 import 'intro_screen.dart'; 
 import 'route_check.dart';
-import 'arcade.dart';
+import 'arcade_first.dart';
 import 'manteinance.dart';
 
 void main() {
   runApp(const MainApp());
 }
 
-/// The MainApp class is a StatelessWidget that defines the routes for navigating between different
-/// pages in a Flutter application.
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
@@ -25,14 +23,10 @@ class MainApp extends StatelessWidget {
         '/route1': (context) => RouteCheck(),
         '/manteinance1': (context) => Manteinance1(),
         '/arcade1': (context) => const Arcade1(),
-        //'/pagina3': (context) => const Imagenes(),
       },
     );
   }
 }
-
-/// The `MyHomePage` class is a stateless widget that represents the home page of an app, with an app
-/// bar and three buttons to navigate to different pages.
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key? key}) : super(key: key);
@@ -89,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(230, 255, 51, 57),
+      backgroundColor: const Color.fromARGB(230, 255, 51, 57),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -116,14 +110,17 @@ class _MyHomePageState extends State<MyHomePage> {
                 ConstrainedBox(
                   constraints: const BoxConstraints.tightFor(width: 200,),
                   child: DropdownButtonFormField<String>(
-                    isExpanded: true, // Para ocupar todo el ancho disponible
+                    isExpanded: true,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
                       ),
+                      fillColor: Colors.white, // Agrega esta línea
+                      filled: true, // Agrega esta línea
                     ),
-                    items: <String>['Admin', 'Partner', 'Route', 'Maintenance', 'Arcade']
+                    //items: <String>['Admin', 'Partner', 'Route', 'Maintenance', 'Arcade']
+                    items: <String>['Route', 'Maintenance', 'Arcade']
                         .map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
@@ -166,6 +163,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
                       ),
+                      fillColor: Colors.white, // Agrega esta línea
+                      filled: true, // Agrega esta línea
                     ),
                   ),
                 ),
@@ -192,6 +191,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
                       ),
+                      fillColor: Colors.white, // Agrega esta línea
+                      filled: true, // Agrega esta línea
                     ),
                   ),
                 ),
@@ -225,4 +226,3 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-

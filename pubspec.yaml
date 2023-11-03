@@ -29,6 +29,7 @@ flutter:
     - img/mod3.jpg
     - img/mod4.jpg
     - img/mod5.jpg
+    - img/qrcode.png
 
   fonts:
     - family: Cabin
