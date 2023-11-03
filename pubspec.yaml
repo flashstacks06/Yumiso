@@ -1,4 +1,4 @@
-name: testt
+name: Yumiso
 description: A new Flutter project.
 publish_to: 'none'
 version: 0.1.0
@@ -35,4 +35,3 @@ flutter:
     - family: Cabin
       fonts:
         - asset: fonts/cabin.ttf
-

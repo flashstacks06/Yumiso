@@ -47,8 +47,9 @@ int color common_google_signin_btn_text_light_disabled 0x7f020009
 int color common_google_signin_btn_text_light_focused 0x7f02000a
 int color common_google_signin_btn_text_light_pressed 0x7f02000b
 int color common_google_signin_btn_tint 0x7f02000c
-int color notification_action_color_filter 0x7f02000d
-int color notification_icon_bg_color 0x7f02000e
+int color ic_launcher_background 0x7f02000d
+int color notification_action_color_filter 0x7f02000e
+int color notification_icon_bg_color 0x7f02000f
 int dimen compat_button_inset_horizontal_material 0x7f030000
 int dimen compat_button_inset_vertical_material 0x7f030001
 int dimen compat_button_padding_horizontal_material 0x7f030002
@@ -200,6 +201,8 @@ int layout notification_template_icon_group 0x7f070004
 int layout notification_template_part_chronometer 0x7f070005
 int layout notification_template_part_time 0x7f070006
 int mipmap ic_launcher 0x7f080000
+int mipmap ic_launcher_foreground 0x7f080001
+int mipmap ic_launcher_round 0x7f080002
 int string common_google_play_services_enable_button 0x7f090000
 int string common_google_play_services_enable_text 0x7f090001
 int string common_google_play_services_enable_title 0x7f090002
