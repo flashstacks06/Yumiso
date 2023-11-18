@@ -96,44 +96,52 @@ class ScrollableGrid extends StatelessWidget {
                                       decoration: const InputDecoration(
                                         border: OutlineInputBorder(),
                                         contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                                        filled: true,  // Añadido para habilitar el relleno
+                                        fillColor: Colors.white, // Establecer el color de fondo
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
                             const SizedBox(height: 20),
-                            SizedBox(
+                            const SizedBox(
                               height: 100,
                               width: 200,
                               child: TextField(
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                   hintText: 'Enter text',
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                                  filled: true,  // Añadido para habilitar el relleno
+                                  fillColor: Colors.white, // Establecer el color de fondo
                                 ),
                               ),
                             ),
                             const SizedBox(height: 20),
-                            SizedBox(
+                            const SizedBox(
                               height: 100,
                               width: 200,
                               child: TextField(
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                   hintText: 'Enter text',
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                                  filled: true,  // Añadido para habilitar el relleno
+                                  fillColor: Colors.white, // Establecer el color de fondo
                                 ),
                               ),
                             ),
                             const SizedBox(height: 20),
-                            SizedBox(
+                            const SizedBox(
                               height: 100,
                               width: 200,
                               child: TextField(
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                   hintText: 'Enter text',
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                                  filled: true,  // Añadido para habilitar el relleno
+                                  fillColor: Colors.white, // Establecer el color de fondo
                                 ),
                               ),
                             ),
