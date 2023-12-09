@@ -19,7 +19,7 @@ def authenticate_user(url, db, admin_username, admin_password, decrypted_data):
         user_id = common_proxy.authenticate(db, admin_username, admin_password, {})
 
         if user_id:
-            print(f'Se autenticó correctamente. Usuario ID: {user_id}')
+            #print(f'Se autenticó correctamente. Usuario ID: {user_id}')
 
             user_proxy = xmlrpc.client.ServerProxy(object_endpoint)
 
@@ -48,7 +48,6 @@ def authenticate_user(url, db, admin_username, admin_password, decrypted_data):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Uso: python script.py <datos_encriptados>")
         sys.exit(1)
 
     secret_key_str = 'PzvGHUWbE3GNHMgGgU7G4TmxREf99oIbQ7_sGmqo040='  # Reemplaza con tu clave secreta
