@@ -197,7 +197,8 @@ void loadConfig()
   if ((len == 0))
   {
     //(i_aux == 0)
-    Serial.println("{\"update_id\":true}");
+    //Serial.println("{\"update_id\":true}");
+    doc_status["update_id"] = true;
     Serial.print("{\"ID\":\"");
     Serial.print(WiFi.macAddress());
     Serial.println("\"}");
@@ -243,7 +244,7 @@ void loadConfig()
 
 
   //------------------- mqtt
-  //if (obj["enable_mqtt"].as<bool>())
+  if (obj["enable_mqtt"].as<bool>())
   {
     mqtt_init();
   }
