@@ -9,11 +9,7 @@ bool mqtt_init()
     Serial.println("{\"mqtt\":\"init\"}");
     Mclient.setBufferSize(BUFFER_MSG_SIZE);
     Mclient.setServer(obj["mqtt_server"].as<const char*>(), obj["mqtt_port"].as<unsigned int>());
-    //client.setServer(obj["mqtt"]["broker"].as<const char*>(),1883);
-    //client.setServer("inventoteca.com", 1883);
     Mclient.setCallback(callback);
-    // Serial.println(obj["mqtt"]["port"].as<unsigned int>());
-    // client_id = obj["id"].as<String>();
     return true;
 
   }
@@ -53,14 +49,14 @@ void mqtt_send()
   //if (mqtt_init())
   {
     //Mclient.publish(buffer_union_publish, buffer_msg);
-    
-      strcat(strcpy(buffer_union_publish,client_id),publish_topic);
-      //snprintf(buffer_msg, sizeof(buffer_msg), "%ld", flag_bolsa);
-      
-      serializeJson(obj,buffer_msg);
-      Serial.print(buffer_msg);
-      Mclient.publish(buffer_union_publish,buffer_msg);
-    
+
+    strcat(strcpy(buffer_union_publish, client_id), publish_topic);
+    //snprintf(buffer_msg, sizeof(buffer_msg), "%ld", flag_bolsa);
+
+    serializeJson(obj, buffer_msg);
+    Serial.print(buffer_msg);
+    Mclient.publish(buffer_union_publish, buffer_msg);
+
   }
 }
 
@@ -79,6 +75,9 @@ void callback(char* topic, byte* payload, unsigned int length)
     Serial.print(jsonPayload); // Imprime el payload como cadena
   }
   Serial.println();
+
+ // StaticJsonDocument<LIST_SIZE> doc_m;
+ // DeserializationError error = deserializeJson(doc_m, jsonPayload);
 }
 
 
