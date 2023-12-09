@@ -143,7 +143,7 @@ class RouteCheck extends StatelessWidget {
                   'Code Checklist',
                   style: TextStyle(
                     fontSize: 40,
-                    color: Color.fromARGB(255, 0, 0, 0),
+                    color: Colors.white,
                     fontFamily: 'Cabin',
                   ),
                 ),
@@ -152,7 +152,7 @@ class RouteCheck extends StatelessWidget {
                   'Functional',
                   style: TextStyle(
                     fontSize: 30,
-                    color: Color.fromARGB(255, 0, 0, 0),
+                    color: Colors.white,
                     fontFamily: 'Cabin',
                   ),
                 ),
@@ -166,7 +166,7 @@ class RouteCheck extends StatelessWidget {
                   'Cleaning',
                   style: TextStyle(
                     fontSize: 30,
-                    color: Color.fromARGB(255, 0, 0, 0),
+                    color: Colors.white,
                     fontFamily: 'Cabin',
                   ),
                 ),
@@ -182,7 +182,7 @@ class RouteCheck extends StatelessWidget {
                   'Observations',
                   style: TextStyle(
                     fontSize: 30,
-                    color: Color.fromARGB(255, 0, 0, 0),
+                    color: Colors.white,
                     fontFamily: 'Cabin',
                   ),
                 ),

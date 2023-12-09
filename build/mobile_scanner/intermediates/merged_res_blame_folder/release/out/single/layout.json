@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "dev.steenbakker.mobile_scanner-merged_res-15:/layout/notification_template_part_chronometer.xml",
+        "source": "dev.steenbakker.mobile_scanner-core-1.6.0-2:/layout/notification_template_part_chronometer.xml"
+    },
+    {
+        "merged": "dev.steenbakker.mobile_scanner-merged_res-15:/layout/custom_dialog.xml",
+        "source": "dev.steenbakker.mobile_scanner-core-1.6.0-2:/layout/custom_dialog.xml"
+    },
+    {
+        "merged": "dev.steenbakker.mobile_scanner-merged_res-15:/layout/notification_template_part_time.xml",
+        "source": "dev.steenbakker.mobile_scanner-core-1.6.0-2:/layout/notification_template_part_time.xml"
+    }
+]

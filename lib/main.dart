@@ -102,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   'Management',
                   style: TextStyle(
                     fontSize: 20,
-                    color: Color.fromARGB(255, 0, 0, 0),
+                    color: Colors.white,
                     fontFamily: 'Cabin',
                   ),
                 ),
@@ -146,7 +146,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   'Username',
                   style: TextStyle(
                     fontSize: 20,
-                    color: Color.fromARGB(255, 0, 0, 0),
+                    color: Colors.white,
                     fontFamily: 'Cabin',
                   ),
                 ),
@@ -173,7 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   'Password',
                   style: TextStyle(
                     fontSize: 20,
-                    color: Color.fromARGB(255, 0, 0, 0),
+                    color: Colors.white,
                     fontFamily: 'Cabin',
                   ),
                 ),

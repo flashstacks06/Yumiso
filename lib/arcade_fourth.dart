@@ -94,6 +94,8 @@ class ScrollableGrid extends StatelessWidget {
                                       decoration: const InputDecoration(
                                         border: OutlineInputBorder(),
                                         contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                                        filled: true,  // Añadido para habilitar el relleno
+                                        fillColor: Colors.white, // Establecer el color de fondo
                                       ),
                                     ),
                                   ),
@@ -108,6 +110,8 @@ class ScrollableGrid extends StatelessWidget {
                                   border: OutlineInputBorder(),
                                   hintText: 'Enter text',
                                   contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                                  filled: true,  // Añadido para habilitar el relleno
+                                  fillColor: Colors.white, // Establecer el color de fondo
                                 ),
                               ),
                             ),
@@ -120,6 +124,8 @@ class ScrollableGrid extends StatelessWidget {
                                   border: OutlineInputBorder(),
                                   hintText: 'Enter text',
                                   contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                                  filled: true,  // Añadido para habilitar el relleno
+                                  fillColor: Colors.white, // Establecer el color de fondo
                                 ),
                               ),
                             ),
