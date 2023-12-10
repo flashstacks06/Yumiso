@@ -341,13 +341,13 @@ bool reconnect()
 
   //strcat(strcpy(buffer_union_subcribe, client_id), subcribe_topic);
   strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic);
-  const char* macAddress = "pico2w";
+  const char* macAddress = "mac";
   //const char* macAddress = getMACAddress();
 
   if (!Mclient.connected())
   {
     Serial.print("Attempting MQTT connection...");
-    String clientId = "GasCar-";
+    String clientId = "yumiso-";
     clientId += String(random(0xffff), HEX);
 
     // Verificar si las claves 'mqtt_user' y 'mqtt_password' existen y no son null
