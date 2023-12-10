@@ -1,9 +1,9 @@
 import xmlrpc.client
 
-url = 'http://137.184.117.41:8069'
+url = 'http://137.184.86.135:8069/'
 db = 'yumiso'
-username = 'cbernalestrella@gmail.com'
-password = '12345678'
+username = 'info@inventoteca.com'
+password = 'Gr4nj3r04dm1n'
 
 # Conexión al servidor de Odoo
 common = xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(url))

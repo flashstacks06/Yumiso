@@ -35,7 +35,7 @@ if __name__ == "__main__":
     client.on_publish = on_publish
 
     # Conéctate al broker MQTT
-    client.connect("broker.hivemq.com", 1883, 60)
+    client.connect("137.184.86.135", 1883, 60)
 
     # Inicia el bucle en segundo plano
     client.loop_start()

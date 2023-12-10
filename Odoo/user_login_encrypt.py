@@ -64,8 +64,8 @@ if __name__ == "__main__":
     decrypted_data = decrypt_data(cipher, encrypted_data)
 
     # Autentica al usuario en Odoo
-    url = 'http://137.184.117.41:8069'
-    db = 'yumiso'
+    url = 'http://137.184.86.135:8069/'
+    db = 'Yumiso'
     admin_username = 'info@inventoteca.com'
     admin_password = 'Gr4nj3r04dm1n'
 
