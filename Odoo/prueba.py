@@ -1,30 +1,54 @@
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
-import base64
+import xmlrpc.client
+import sys
 
-def decrypt_aes(encrypted_data, base64_key, base64_iv):
-    key = base64.urlsafe_b64decode(base64_key)
-    iv = base64.urlsafe_b64decode(base64_iv)
-    encrypted_data = base64.urlsafe_b64decode(encrypted_data)
+# Verificación de argumentos de la línea de comandos
+if len(sys.argv) != 5:
+    print("Uso: python script.py <nombre> <correo> <contraseña> <grupo>")
+    sys.exit(1)
 
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-    decryptor = cipher.decryptor()
-    plaintext = decryptor.update(encrypted_data) + decryptor.finalize()
+# Datos de usuario desde argumentos de la línea de comandos
+nombre, correo, contraseña, nombre_grupo = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 
-    return plaintext.decode('utf-8', errors='ignore')
+# Configuración del servidor Odoo
+url = 'http://137.184.86.135:8069/'
+db = 'yumiso'
+admin_username = 'info@inventoteca.com'  # Nombre de usuario del administrador
+admin_password = 'Gr4nj3r04dm1n'        # Contraseña del administrador
 
-# Ejemplo de uso
-encrypted_message = 'C17Q3RLzgDonr0cPo81GeU+Sac7T1rBbCfToTs7Z66A=:YV3k/MjWmNQpIe1qwdGyqA=='
-key = 'O1GqAK5igRS-BTYgSVLBvg=='  # La clave generada
-iv = 'v0kiTpvIvAN1IoFQNyB1IQ=='  # El IV generado
+# Endpoints XML-RPC
+common_endpoint = f'{url}/xmlrpc/2/common'
+object_endpoint = f'{url}/xmlrpc/2/object'
 
-# Divide el mensaje encriptado en dos partes
-encrypted_user, encrypted_password = encrypted_message.split(':')
+# Conexión y Autenticación en el servidor Odoo como usuario administrador
+common_proxy = xmlrpc.client.ServerProxy(common_endpoint)
+admin_user_id = common_proxy.authenticate(db, admin_username, admin_password, {})
 
-# Desencripta cada parte
-decrypted_user = decrypt_aes(encrypted_user, key, iv)
-decrypted_password = decrypt_aes(encrypted_password, key, iv)
+if admin_user_id:
+    # Conexión para operaciones adicionales con credenciales de administrador
+    odoo_proxy = xmlrpc.client.ServerProxy(object_endpoint)
 
-print(f'{decrypted_user}:{decrypted_password}')
+    # Buscar el grupo por nombre
+    group_ids = odoo_proxy.execute_kw(
+        db, admin_user_id, admin_password,
+        'res.groups', 'search', [[['name', '=', nombre_grupo]]]
+    )
 
+    if group_ids:
+        group_id = group_ids[0]
 
+        # Crear el nuevo usuario
+        new_user_id = odoo_proxy.execute_kw(
+            db, admin_user_id, admin_password,
+            'res.users', 'create', [{
+                'name': nombre,
+                'login': correo,
+                'password': contraseña,
+                'groups_id': [(4, group_id)]
+            }]
+        )
+
+        print(f"Usuario creado con éxito. ID: {new_user_id}")
+    else:
+        print(f"No se encontró el grupo: {nombre_grupo}")
+else:
+    print('Error al autenticar al administrador.')
