@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-//import 'Imagenes.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
+
+// Importa tus otras pantallas aquí
 import 'segunda.dart';
 import 'intro_screen.dart'; 
 import 'route_check.dart';
@@ -16,7 +20,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: const SplashScreen(),
+      home: MyHomePage(),
       debugShowCheckedModeBanner: false,
       routes: {
         '/pagina2': (context) => const PaginaDos(),
@@ -41,7 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String? management;
   String? errorMessage;
 
-  void login() {
+  void login() async {
     final username = usernameController.text;
     final password = passwordController.text;
 
@@ -50,34 +54,69 @@ class _MyHomePageState extends State<MyHomePage> {
         errorMessage =
             'Por favor, completa todos los campos y selecciona una opción de gestión.';
       });
-    } else {
-      print(
-          'Management: $management, Username: $username, Password: $password');
-      setState(() {
-        errorMessage = null;
-      });
-
-      Widget pageToNavigate;
-
-      switch (management) {
-        case 'Route':
-          pageToNavigate = RouteCheck();
-          break;
-        case 'Maintenance':
-          pageToNavigate = Manteinance1();
-          break;
-        case 'Arcade':
-          pageToNavigate = Arcade1();
-          break;
-        default:
-          pageToNavigate = Container();
-      }
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => pageToNavigate),
-      );
+      return;
     }
+
+    final encryptedUsername = encryptData(username);
+    final encryptedPassword = encryptData(password);
+
+    await enviarDatosMQTT(encryptedUsername, encryptedPassword);
+
+    // Navegar a la página correspondiente
+    Widget pageToNavigate;
+    switch (management) {
+      case 'Route':
+        pageToNavigate = RouteCheck();
+        break;
+      case 'Maintenance':
+        pageToNavigate = Manteinance1();
+        break;
+      case 'Arcade':
+        pageToNavigate = Arcade1();
+        break;
+      default:
+        pageToNavigate = Container();
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => pageToNavigate),
+    );
+  }
+
+String encryptData(String data) {
+  final key = encrypt.Key.fromBase64('O1GqAK5igRS-BTYgSVLBvg=='); // Usa la clave generada aquí
+  final iv = encrypt.IV.fromBase64('v0kiTpvIvAN1IoFQNyB1IQ=='); // Usa el IV generado aquí
+  final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
+  final encrypted = encrypter.encrypt(data, iv: iv);
+  return encrypted.base64;
+}
+
+
+  Future<void> enviarDatosMQTT(String username, String password) async {
+    final client = MqttServerClient('137.184.86.135', '1883'); // Reemplaza con tu broker
+
+    try {
+      await client.connect();
+    } catch (e) {
+      print('Error al conectar con el broker MQTT: $e');
+      return;
+    }
+
+    if (client.connectionStatus!.state == MqttConnectionState.connected) {
+      print('Cliente MQTT conectado');
+      final builder = MqttClientPayloadBuilder();
+      builder.addString('$username:$password');
+
+      client.publishMessage(
+        'users', // Reemplaza con tu tópico
+        MqttQos.atLeastOnce,
+        builder.payload!,
+      );
+    } else {
+      print('Error al conectarse al broker MQTT');
+    }
+
+    client.disconnect();
   }
 
   @override
@@ -116,10 +155,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
                       ),
-                      fillColor: Colors.white, // Agrega esta línea
-                      filled: true, // Agrega esta línea
+                      fillColor: Colors.white,
+                      filled: true,
                     ),
-                    //items: <String>['Admin', 'Partner', 'Route', 'Maintenance', 'Arcade']
                     items: <String>['Route', 'Maintenance', 'Arcade']
                         .map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
@@ -163,8 +201,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
                       ),
-                      fillColor: Colors.white, // Agrega esta línea
-                      filled: true, // Agrega esta línea
+                      fillColor: Colors.white,
+                      filled: true,
                     ),
                   ),
                 ),
@@ -191,8 +229,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
                       ),
-                      fillColor: Colors.white, // Agrega esta línea
-                      filled: true, // Agrega esta línea
+                      fillColor: Colors.white,
+                      filled: true,
                     ),
                   ),
                 ),

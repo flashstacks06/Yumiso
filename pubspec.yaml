@@ -12,6 +12,8 @@ dependencies:
     sdk: flutter
     
   mobile_scanner: ^3.4.1
+  encrypt: ^5.0.1
+  mqtt_client: ^9.6.3
 
 
 dev_dependencies:
