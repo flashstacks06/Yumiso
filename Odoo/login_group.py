@@ -5,19 +5,6 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.backends import default_backend
 
-# Verificación de argumentos de la línea de comandos
-if len(sys.argv) != 2:
-    print("Uso: python script.py <mensaje_encriptado>")
-    sys.exit(1)
-
-# Datos Encriptados desde argumentos de la línea de comandos
-encrypted_message = sys.argv[1]
-
-# Clave y IV predefinidos para la desencriptación
-key = 'O1GqAK5igRS-BTYgSVLBvg=='
-iv = 'v0kiTpvIvAN1IoFQNyB1IQ=='
-
-# Funciones de Desencriptación y Quitar Relleno
 def decrypt_aes(encrypted_data, base64_key, base64_iv):
     key = base64.urlsafe_b64decode(base64_key)
     iv = base64.urlsafe_b64decode(base64_iv)
@@ -34,9 +21,24 @@ def unpad(data):
     unpadded_data = unpadder.update(data) + unpadder.finalize()
     return unpadded_data
 
-# Desencriptar Usuario y Contraseña
+if len(sys.argv) != 2:
+    print("Uso: python script.py <mensaje_encriptado>")
+    sys.exit(1)
+
+# Datos Encriptados desde argumentos de la línea de comandos
+encrypted_message = sys.argv[1]
+
+# Clave y IV predefinidos para la desencriptación
+key = 'O1GqAK5igRS-BTYgSVLBvg=='
+iv = 'v0kiTpvIvAN1IoFQNyB1IQ=='
+
+# Separar el mensaje encriptado en usuario y contraseña
 encrypted_user, encrypted_password = encrypted_message.split(':')
+
+# Desencriptar Usuario
 username = unpad(decrypt_aes(encrypted_user, key, iv)).decode('utf-8').strip()
+
+# Desencriptar Contraseña
 password = unpad(decrypt_aes(encrypted_password, key, iv)).decode('utf-8').strip()
 
 # Configuración del servidor Odoo
@@ -56,36 +58,37 @@ admin_user_id = common_proxy.authenticate(db, admin_username, admin_password, {}
 if admin_user_id:
     # Conexión para operaciones adicionales con credenciales de administrador
     admin_user_proxy = xmlrpc.client.ServerProxy(object_endpoint)
-
-    # Obtener información del usuario autenticado
-    user_info = admin_user_proxy.execute_kw(
-        db, admin_user_id, admin_password,
-        'res.users', 'search_read', [[['login', '=', username]]],
-        {'fields': ['id', 'name', 'groups_id']}
-    )
-
-    if user_info:
-        user_id_to_check = user_info[0]['id']
-
-        # Leer los roles asignados al usuario utilizando la cuenta del administrador
-        roles = admin_user_proxy.execute_kw(
+    
+    # Intentar autenticar al usuario con el nombre de usuario y contraseña proporcionados
+    try:
+        user_id = admin_user_proxy.execute_kw(
             db, admin_user_id, admin_password,
-            'res.users', 'read', [user_id_to_check],
-            {'fields': ['groups_id']}
+            'res.users', 'authenticate', [db, username, password, {}]
         )
 
-        if roles and roles[0]['groups_id']:
-            #print(f'Grupos del usuario {username}:')
-            for role_id in roles[0]['groups_id']:
-                role_info = admin_user_proxy.execute_kw(
-                    db, admin_user_id, admin_password,
-                    'res.groups', 'read', [role_id],
-                    {'fields': ['name']}
-                )
-                print(f'{role_info[0]["name"]}')
-        else:
-            print(f'El usuario {username} no tiene grupos asignados.')
-    else:
-        print('Inicio de sesión incorrecto.')
+        if isinstance(user_id, int):
+            #print(f'Inicio de sesión exitoso para el usuario {username}')
+            
+            # Leer los roles asignados al usuario utilizando la cuenta del administrador
+            roles = admin_user_proxy.execute_kw(
+                db, admin_user_id, admin_password,
+                'res.users', 'read', [user_id],
+                {'fields': ['groups_id']}
+            )
+
+            if roles and roles[0]['groups_id']:
+                #print('Grupos del usuario:')
+                for role_id in roles[0]['groups_id']:
+                    role_info = admin_user_proxy.execute_kw(
+                        db, admin_user_id, admin_password,
+                        'res.groups', 'read', [role_id],
+                        {'fields': ['name']}
+                    )
+                    print(f'{role_info[0]["name"]}')
+            else:
+                print(f'No tiene grupos asignados.')
+
+    except xmlrpc.client.Fault:
+        print('Credenciales incorrectas')
 else:
-    print('Inicio de sesión incorrecto.')
+    print('Credenciales incorrectas')
