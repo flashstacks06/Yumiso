@@ -7,6 +7,7 @@ import 'package:mqtt_client/mqtt_server_client.dart';
 import 'route_check.dart';
 import 'arcade_first.dart';
 import 'manteinance.dart';
+import 'qr_check.dart'; // Asume que tu pantalla de escaneo de QR está en 'qr_check.dart'
 
 void main() {
   runApp(const MainApp());
@@ -98,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
       );
 
       // Suscribirse a un tópico para recibir la respuesta
-      const respuestaTopico = 'respuesta'; // Asegúrate de cambiar esto por tu tópico
+      const respuestaTopico = 'respuesta';
       client.subscribe(respuestaTopico, MqttQos.atLeastOnce);
 
       client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
@@ -114,45 +115,39 @@ class _MyHomePageState extends State<MyHomePage> {
         _isLoading = false;
       });
     }
-
-    // Opcional: Desconectar el cliente MQTT después de un tiempo si no se recibe respuesta
   }
 
   void _navegarSegunRespuesta(String respuesta) {
-    Widget pageToNavigate;
-    print(respuesta);
-    switch (respuesta) {
-      case 'Route':
-        pageToNavigate = RouteCheck();
-        break;
-      case 'Maintenance':
-        pageToNavigate = Manteinance1();
-        break;
-      case 'Arcade':
-        pageToNavigate = Arcade1();
-        break;
-      default:
-        print('Respuesta MQTT no reconocida');
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => pageToNavigate),
-    );
-
     setState(() {
       _isLoading = false;
     });
+
+    switch (respuesta) {
+      case 'Route':
+      case 'Maintenance':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => QRCodeScannerApp(mqttResponse: respuesta),
+          ),
+        );
+        break;
+      case 'Arcade':
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Arcade1()),
+        );
+        break;
+      default:
+        print('Respuesta MQTT no reconocida');
+        break;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(230, 255, 51, 57), // Cambia el color de fondo a blanco
+      backgroundColor: const Color.fromARGB(230, 255, 51, 57),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -170,7 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   'Login',
                   style: TextStyle(
                     fontSize: 28,
-                    color: Colors.black, // Cambia el color del texto a negro
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -196,16 +191,17 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                if (_isLoading)
-                  CircularProgressIndicator(),
+                if (_isLoading) CircularProgressIndicator(),
                 if (!_isLoading)
                   ElevatedButton(
                     onPressed: login,
-                    child: Text(
+                    child: const Text(
                       'Login',
                       style: TextStyle(fontSize: 18),
                     ),
                     style: ElevatedButton.styleFrom(
+                      primary: Colors.blue, // Button color
+                      onPrimary: Colors.white, // Text color
                       minimumSize: const Size.fromHeight(50),
                     ),
                   ),
@@ -214,13 +210,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
                       errorMessage!,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.red,
                         fontSize: 16,
                       ),
                     ),
                   ),
-                // Agrega aquí más widgets si es necesario
               ],
             ),
           ),
