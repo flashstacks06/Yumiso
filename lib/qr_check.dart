@@ -114,7 +114,7 @@ class _QRCodeScannerAppState extends State<QRCodeScannerApp> {
         case 'Maintenance':
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => Manteinance1()),
+            MaterialPageRoute(builder: (context) => Maintenance1()),
           );
           break;
         // No se necesita manejar 'Arcade' aquí ya que se maneja en MyHomePage

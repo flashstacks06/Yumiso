@@ -5,7 +5,11 @@ from datetime import datetime
 # Argumentos de la línea de comandos
 numero_maquina = sys.argv[1]  # Número de la máquina
 correo_cliente = sys.argv[2]  # Correo electrónico del cliente
-ids_productos = sys.argv[3:]  # IDs de los productos (separados por espacios)
+ids_productos_str = sys.argv[3]  # String de IDs de productos (formato de lista)
+
+# Eliminar los corchetes y espacios, y luego convertir la cadena en una lista de enteros
+ids_productos = [int(x) for x in ids_productos_str.strip('[]').split(',') if x.strip()]
+
 
 # URL y credenciales para el servidor XML-RPC
 url = 'http://137.184.86.135:8069'
@@ -38,8 +42,8 @@ def buscar_cliente(correo_cliente):
         return {'id': cliente[0]['id'], 'login': cliente[0]['email']}
     else:
         return None
-# Crear la orden de reparación
-# Crear la orden de reparación
+
+# Función para crear la orden de reparación
 def crear_orden_reparacion(producto_id, cliente_id, ids_productos):
     uom_id = 1  # ID de la Unidad de Medida 'Unidades'
     fecha_actual = datetime.now().strftime('%Y-%m-%d')
@@ -48,7 +52,7 @@ def crear_orden_reparacion(producto_id, cliente_id, ids_productos):
 
     # Asignar un nombre y precio a las líneas de operación basado en el ID del producto
     operations = []
-    for pid in map(int, ids_productos):
+    for pid in ids_productos:
         # Recuperar precio del producto
         producto_info = models.execute_kw(db, uid, password,
             'product.product', 'search_read',
@@ -81,6 +85,16 @@ def crear_orden_reparacion(producto_id, cliente_id, ids_productos):
     return orden_id
 
 
+# Función para confirmar la orden de reparación
+def confirmar_orden_reparacion(orden_id):
+    models.execute_kw(db, uid, password, 'repair.order', 'action_validate', [orden_id])
+
+# Función para iniciar la orden de reparación
+def iniciar_orden_reparacion(orden_id):
+    models.execute_kw(db, uid, password, 'repair.order', 'action_repair_start', [orden_id])
+
+def finalizar_orden_reparacion(orden_id):
+    models.execute_kw(db, uid, password, 'repair.order', 'action_repair_end', [orden_id])
 
 # Ejecutar el script
 if __name__ == "__main__":
@@ -92,9 +106,29 @@ if __name__ == "__main__":
     if producto and cliente:
         producto_id = producto['id']
         cliente_id = cliente['id']
-        ids_productos = [int(pid) for pid in ids_productos]  # Convertir a enteros
 
+        # Eliminada la conversión redundante de ids_productos a enteros
         orden_id = crear_orden_reparacion(producto_id, cliente_id, ids_productos)
         print(f"Orden de reparación creada con ID: {orden_id}")
+        
+        try:
+            # Confirmar la orden de reparación
+            confirmar_orden_reparacion(orden_id)
+            print(f"Orden de reparación confirmada con ID: {orden_id}")
+        except xmlrpc.client.Fault as e:
+            print(f"No se pudo confirmar la orden de reparación: {e}")
+        try:
+            # Iniciar la orden de reparación
+            iniciar_orden_reparacion(orden_id)
+            print(f"Reparación iniciada para la orden con ID: {orden_id}")
+        except xmlrpc.client.Fault as e:
+            print(f"No se pudo iniciar la reparación: {e}")
+            
+        try:
+            finalizar_orden_reparacion(orden_id)
+            print(f"Reparación finalizada para la orden con ID: {orden_id}")
+        except xmlrpc.client.Fault as e:
+            print(f"No se pudo procesar completamente la orden de reparación: {e}")
+
     else:
         print("No se pudo encontrar el producto o el cliente con los datos proporcionados.")

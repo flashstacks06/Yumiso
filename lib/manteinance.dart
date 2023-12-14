@@ -1,35 +1,100 @@
 import 'package:flutter/material.dart';
 
-class Manteinance1 extends StatelessWidget {
+class Maintenance1 extends StatefulWidget {
+  @override
+  _Maintenance1State createState() => _Maintenance1State();
+}
+
+class _Maintenance1State extends State<Maintenance1> {
+  List<bool> repairChecked = List.generate(3, (index) => false);
+  List<bool> partReplacementChecked = List.generate(3, (index) => false);
+  List<int> selectionMatrix = List.generate(6, (index) => 0);
+
+  Widget largeCheckbox(bool value, ValueChanged<bool?> onChanged, int index, String category) {
+    return Transform.scale(
+      scale: 2.0,
+      child: Checkbox(
+        value: value,
+        onChanged: onChanged,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     List<String> titles = ['Coin Selector', 'Motherboard', 'Joystick'];
 
-    List<Widget> widgets = [];
+    List<Widget> repairWidgets = [];
+    List<Widget> partReplacementWidgets = [];
+    List<Widget> images = [];
 
-    for (var i = 1; i <= 3; i++) {
-      widgets.addAll([
+    for (var i = 0; i < 3; i++) {
+      images.add(
         Column(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black, width: 2), // Borde negro
-              ),
-              child: Image.asset(
-                'img/man$i.jpg',
-                width: MediaQuery.of(context).size.width * 0.29,
-                height: MediaQuery.of(context).size.width * 0.29,
-              ),
+            Image.asset(
+              'img/man${i + 1}.jpg',
+              width: MediaQuery.of(context).size.width * 0.3,
+              height: MediaQuery.of(context).size.width * 0.3,
             ),
-            SizedBox(height: 15),
+            SizedBox(height: 8),
             Text(
-              titles[i - 1],
-              style: TextStyle(fontSize: 20, fontFamily: 'Cabin', color: Colors.white),
+              titles[i],
+              style: TextStyle(fontSize: 18, fontFamily: 'Cabin', color: Colors.white),
             ),
-            SizedBox(height: 10),
           ],
         ),
-      ]);
+      );
+
+      repairWidgets.add(
+        Column(
+          children: [
+            largeCheckbox(
+              repairChecked[i],
+              (value) {
+                setState(() {
+                  repairChecked[i] = value!;
+                  int repairValue;
+                  switch (i) {
+                    case 0: repairValue = 9; break;
+                    case 1: repairValue = 11; break;
+                    case 2: repairValue = 10; break;
+                    default: repairValue = 0; break;
+                  }
+                  selectionMatrix[i] = value ? repairValue : 0;
+                });
+              },
+              i,
+              'Repair',
+            ),
+          ],
+        ),
+      );
+
+      partReplacementWidgets.add(
+        Column(
+          children: [
+            largeCheckbox(
+              partReplacementChecked[i],
+              (value) {
+                setState(() {
+                  partReplacementChecked[i] = value!;
+                  int replacementValue;
+                  switch (i) {
+                    case 0: replacementValue = 5; break;
+                    case 1: replacementValue = 7; break;
+                    case 2: replacementValue = 8; break;
+                    default: replacementValue = 0; break;
+                  }
+                  selectionMatrix[i + 3] = value ? replacementValue : 0;
+                });
+              },
+              i,
+              'Part Replacement',
+            ),
+          ],
+        ),
+      );
     }
 
     return Scaffold(
@@ -38,7 +103,6 @@ class Manteinance1 extends StatelessWidget {
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 'Maintenance',
@@ -47,94 +111,31 @@ class Manteinance1 extends StatelessWidget {
               SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: widgets.sublist(0, 3),
+                children: images,
               ),
               SizedBox(height: 20),
               Text(
                 'Repair',
                 style: TextStyle(fontSize: 28, fontFamily: 'Cabin', color: Colors.white),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.2,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        fillColor: Colors.white,
-                        filled: true,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.2,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        fillColor: Colors.white,
-                        filled: true,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.2,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        fillColor: Colors.white,
-                        filled: true,
-                      ),
-                    ),
-                  ),
-                ],
+                children: repairWidgets,
               ),
-              SizedBox(height: 20),
               Text(
-                'Part replacement',
+                'Part Replacement',
                 style: TextStyle(fontSize: 28, fontFamily: 'Cabin', color: Colors.white),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.2,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        fillColor: Colors.white,
-                        filled: true,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.2,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        fillColor: Colors.white,
-                        filled: true,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.2,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        fillColor: Colors.white,
-                        filled: true,
-                      ),
-                    ),
-                  ),
-                ],
+                children: partReplacementWidgets,
               ),
-              SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   // Acción a realizar cuando se presiona el botón "Finish"
+                  print(selectionMatrix);
                 },
                 child: Text('Finish'),
               ),
@@ -148,7 +149,7 @@ class Manteinance1 extends StatelessWidget {
 
 void main() {
   runApp(MaterialApp(
-    home: Manteinance1(),
+    home: Maintenance1(),
     debugShowCheckedModeBanner: false,
   ));
 }

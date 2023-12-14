@@ -23,7 +23,7 @@ class MainApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routes: {
         '/route1': (context) => RouteCheck(),
-        '/manteinance1': (context) => Manteinance1(),
+        '/manteinance1': (context) => Maintenance1(),
         '/arcade1': (context) => const Arcade1(),
       },
     );
