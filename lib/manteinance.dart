@@ -1,14 +1,73 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart'; // Importa fluttertoast
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
 
 class Maintenance1 extends StatefulWidget {
+  final String userEmail;
+  final String qrId;
+
+  Maintenance1({Key? key, required this.userEmail, required this.qrId}) : super(key: key);
+
   @override
   _Maintenance1State createState() => _Maintenance1State();
+}
+
+MqttServerClient createRandomMqttClient(String broker, int port) {
+  final Random random = Random();
+  final int randomNumber = random.nextInt(10000); // Genera un número aleatorio
+  final String clientId = 'mqtt_client_$randomNumber'; // Nombre de cliente único
+
+  final MqttServerClient mqttClient = MqttServerClient.withPort(broker, clientId, port);
+
+  return mqttClient;
 }
 
 class _Maintenance1State extends State<Maintenance1> {
   List<bool> repairChecked = List.generate(3, (index) => false);
   List<bool> partReplacementChecked = List.generate(3, (index) => false);
   List<int> selectionMatrix = List.generate(6, (index) => 0);
+
+  // Configura el cliente MQTT
+  
+  final MqttServerClient mqttClient = createRandomMqttClient('137.184.86.135', 1883);
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Conecta al servidor MQTT
+    _connectToMQTT();
+  }
+
+  void _connectToMQTT() async {
+    try {
+      await mqttClient.connect();
+    } catch (e) {
+      print('Error al conectarse a MQTT: $e');
+    }
+  }
+
+  void enviarDatosMQTT() {
+    final message = {
+      widget.userEmail,
+      widget.qrId,
+      selectionMatrix.toString(),
+    };
+
+    final builder = MqttClientPayloadBuilder();
+    builder.addString(message.toString());
+
+    final payload = builder.payload;
+
+    if (mqttClient.connectionStatus!.state == MqttConnectionState.connected) {
+      mqttClient.publishMessage('users/maintenance', MqttQos.atMostOnce, payload!);
+      print('Datos enviados a MQTT');
+    } else {
+      print('Error: No se pudo enviar datos a MQTT porque la conexión no está activa.');
+    }
+  }
 
   Widget largeCheckbox(bool value, ValueChanged<bool?> onChanged, int index, String category) {
     return Transform.scale(
@@ -19,6 +78,18 @@ class _Maintenance1State extends State<Maintenance1> {
       ),
     );
   }
+
+void mostrarAlerta(String title, String message) {
+  Fluttertoast.showToast(
+    msg: message,
+    toastLength: Toast.LENGTH_SHORT,
+    gravity: ToastGravity.BOTTOM,
+    timeInSecForIosWeb: 1,
+    backgroundColor: Colors.green, // Color de fondo de la alerta
+    textColor: Colors.white, // Color del texto de la alerta
+    fontSize: 16.0,
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -56,10 +127,18 @@ class _Maintenance1State extends State<Maintenance1> {
                   repairChecked[i] = value!;
                   int repairValue;
                   switch (i) {
-                    case 0: repairValue = 9; break;
-                    case 1: repairValue = 11; break;
-                    case 2: repairValue = 10; break;
-                    default: repairValue = 0; break;
+                    case 0:
+                      repairValue = 9;
+                      break;
+                    case 1:
+                      repairValue = 11;
+                      break;
+                    case 2:
+                      repairValue = 10;
+                      break;
+                    default:
+                      repairValue = 0;
+                      break;
                   }
                   selectionMatrix[i] = value ? repairValue : 0;
                 });
@@ -81,10 +160,18 @@ class _Maintenance1State extends State<Maintenance1> {
                   partReplacementChecked[i] = value!;
                   int replacementValue;
                   switch (i) {
-                    case 0: replacementValue = 5; break;
-                    case 1: replacementValue = 7; break;
-                    case 2: replacementValue = 8; break;
-                    default: replacementValue = 0; break;
+                    case 0:
+                      replacementValue = 5;
+                      break;
+                    case 1:
+                      replacementValue = 7;
+                      break;
+                    case 2:
+                      replacementValue = 8;
+                      break;
+                    default:
+                      replacementValue = 0;
+                      break;
                   }
                   selectionMatrix[i + 3] = value ? replacementValue : 0;
                 });
@@ -134,8 +221,17 @@ class _Maintenance1State extends State<Maintenance1> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  // Acción a realizar cuando se presiona el botón "Finish"
-                  print(selectionMatrix);
+                  print('Correo Electrónico: ${widget.userEmail}');
+                  print('QR ID: ${widget.qrId}');
+                  print('Selecciones: $selectionMatrix');
+                  enviarDatosMQTT(); // Envía los datos al tópico MQTT
+                  
+                  // Muestra una alerta según si se envían los datos o no
+                  if (mqttClient.connectionStatus!.state == MqttConnectionState.connected) {
+                    mostrarAlerta('Orden creada', 'La orden de mantenimiento se ha creado correctamente.');
+                  } else {
+                    mostrarAlerta('Error', 'No se pudieron enviar los datos a MQTT debido a una conexión no activa.');
+                  }
                 },
                 child: Text('Finish'),
               ),
@@ -145,11 +241,4 @@ class _Maintenance1State extends State<Maintenance1> {
       ),
     );
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: Maintenance1(),
-    debugShowCheckedModeBanner: false,
-  ));
 }

@@ -16,6 +16,7 @@ dependencies:
   mqtt_client: ^9.6.3
   qr_code_scanner: ^1.0.1
   camera: ^0.10.5+7
+  fluttertoast: ^8.2.4
 
 
 dev_dependencies:

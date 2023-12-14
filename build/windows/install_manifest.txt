@@ -20,4 +20,6 @@ C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data
 C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/kernel_blob.bin
 C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/NOTICES
 C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/NOTICES.Z
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/packages/fluttertoast/assets/toastify.css
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/packages/fluttertoast/assets/toastify.js
 C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/shaders/ink_sparkle.frag

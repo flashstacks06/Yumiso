@@ -1,12 +1,14 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
 // Importa tus otras pantallas aquí
-import 'route_check.dart';
+//import 'route_check.dart';
 import 'arcade_first.dart';
-import 'manteinance.dart';
+//import 'manteinance.dart';
 import 'qr_check.dart'; // Asume que tu pantalla de escaneo de QR está en 'qr_check.dart'
 
 void main() {
@@ -22,8 +24,8 @@ class MainApp extends StatelessWidget {
       home: MyHomePage(),
       debugShowCheckedModeBanner: false,
       routes: {
-        '/route1': (context) => RouteCheck(),
-        '/manteinance1': (context) => Maintenance1(),
+        //'/route1': (context) => RouteCheck(),
+        //'/manteinance1': (context) => Maintenance1(),
         '/arcade1': (context) => const Arcade1(),
       },
     );
@@ -42,6 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController passwordController = TextEditingController();
   bool _isLoading = false;
   String? errorMessage;
+  String? userEmail;
 
   void login() async {
     setState(() {
@@ -52,6 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final password = passwordController.text;
 
     if (username.isEmpty || password.isEmpty) {
+      userEmail = username;
       setState(() {
         errorMessage = 'Por favor, completa todos los campos.';
         _isLoading = false;
@@ -65,6 +69,16 @@ class _MyHomePageState extends State<MyHomePage> {
     await enviarDatosMQTT(encryptedUsername, encryptedPassword);
   }
 
+MqttServerClient createRandomMqttClient(String broker, int port) {
+  final Random random = Random();
+  final int randomNumber = random.nextInt(10000); // Genera un número aleatorio
+  final String clientId = 'mqtt_client_$randomNumber'; // Nombre de cliente único
+
+  final MqttServerClient mqttClient = MqttServerClient.withPort(broker, clientId, port);
+
+  return mqttClient;
+}
+
   String encryptData(String data) {
     final key = encrypt.Key.fromBase64('O1GqAK5igRS-BTYgSVLBvg==');
     final iv = encrypt.IV.fromBase64('v0kiTpvIvAN1IoFQNyB1IQ==');
@@ -75,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> enviarDatosMQTT(String username, String password) async {
-    final client = MqttServerClient('137.184.86.135', '1883');
+    final MqttServerClient client = createRandomMqttClient('137.184.86.135', 1883);
 
     try {
       await client.connect();
@@ -107,7 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
         final payload =
             MqttPublishPayload.bytesToStringAsString(message.payload.message);
 
-        _navegarSegunRespuesta(payload);
+        _navegarSegunRespuesta(payload,username);
       });
     } else {
       print('Error al conectarse al broker MQTT');
@@ -117,7 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _navegarSegunRespuesta(String respuesta) {
+  void _navegarSegunRespuesta(String respuesta,String username) {
     setState(() {
       _isLoading = false;
     });
@@ -128,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => QRCodeScannerApp(mqttResponse: respuesta),
+            builder: (context) => QRCodeScannerApp(mqttResponse: respuesta,userEmail:username),
           ),
         );
         break;

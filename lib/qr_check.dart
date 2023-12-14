@@ -9,8 +9,10 @@ import 'manteinance.dart';
 
 class QRCodeScannerApp extends StatefulWidget {
   final String mqttResponse; // Agregado para recibir la respuesta MQTT
+  final String userEmail;    // Correo electrónico del usuario
 
-  QRCodeScannerApp({Key? key, required this.mqttResponse}) : super(key: key);
+  QRCodeScannerApp({Key? key, required this.mqttResponse,required this.userEmail}) : super(key: key);
+  
 
   @override
   _QRCodeScannerAppState createState() => _QRCodeScannerAppState();
@@ -114,7 +116,7 @@ class _QRCodeScannerAppState extends State<QRCodeScannerApp> {
         case 'Maintenance':
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => Maintenance1()),
+            MaterialPageRoute(builder: (context) => Maintenance1(userEmail: widget.userEmail,qrId: qrId!,)),
           );
           break;
         // No se necesita manejar 'Arcade' aquí ya que se maneja en MyHomePage
