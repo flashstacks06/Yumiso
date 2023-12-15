@@ -1,129 +1,85 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'route_stock.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
 
-class ButtonPair extends StatefulWidget {
-  final String text;
-
-  ButtonPair({required this.text});
-
-  @override
-  _ButtonPairState createState() => _ButtonPairState();
-}
-
-class _ButtonPairState extends State<ButtonPair> {
-  bool isCheckButtonPressed = false;
-  bool isCloseButtonPressed = false;
+class RouteCheck extends StatefulWidget {
+  
+  final String userEmail;
+  final String qrId;
+  RouteCheck({Key? key, required this.userEmail, required this.qrId}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              widget.text,
-              style: const TextStyle(color: Colors.white, fontSize: 20),
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                isCheckButtonPressed = !isCheckButtonPressed;
-                isCloseButtonPressed = false;
-                buttonStates[widget.text] = isCheckButtonPressed;
-              });
-            },
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 10),
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isCheckButtonPressed ? Colors.white : Colors.grey,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.check,
-                  color: isCheckButtonPressed ? Colors.red : Colors.white,
-                  size: 30,
-                ),
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                isCloseButtonPressed = !isCloseButtonPressed;
-                isCheckButtonPressed = false;
-                buttonStates[widget.text] = !isCloseButtonPressed;
-              });
-            },
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isCloseButtonPressed ? Colors.white : Colors.grey,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Icon(
-                  Icons.close,
-                  color: isCloseButtonPressed ? Colors.red : Colors.white,
-                  size: 30,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  _RouteCheckState createState() => _RouteCheckState();
 }
 
-Map<String, bool> buttonStates = {};
+MqttServerClient createRandomMqttClient(String broker, int port) {
+  final Random random = Random();
+  final int randomNumber = random.nextInt(10000);
+  final String clientId = 'mqtt_client_$randomNumber';
 
-class RouteCheck extends StatelessWidget {
+  final MqttServerClient mqttClient = MqttServerClient.withPort(broker, clientId, port);
+
+  return mqttClient;
+}
+
+class _RouteCheckState extends State<RouteCheck> {
   final TextEditingController textController = TextEditingController();
+  Map<String, bool> buttonStates = {};
+  final MqttServerClient mqttClient = createRandomMqttClient('137.184.86.135', 1883);
 
-  RouteCheck({super.key});
-
-  bool validateButtonStates() {
-    return buttonStates.values.any((value) => value);
+  @override
+  void initState() {
+    super.initState();
+    initializeButtonStates();
+    _connectToMQTT();
   }
 
-  void _navigateToRouteStock(BuildContext context) {
-    bool allButtonsSelected = validateButtonStates();
+  void initializeButtonStates() {
+    // Inicializa las opciones con valores predeterminados (falsos)
+    buttonStates = {
+      'Coin Selector': false,
+      'Motherboard': false,
+      'Joystick': false,
+      'Claw': false,
+      'Lights': false,
+      'Other': false,
+      'Showcase': false,
+      'Crystals': false,
+      'Cabinet': false,
+      'Acrylics/Stickers': false,
+      'Other Cleaning': false,
+    };
+  }
 
-    if (!allButtonsSelected) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: const Text('Por favor, asegúrate de que al menos una opción esté seleccionada en cada par.'),
-            actions: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
+  void _connectToMQTT() async {
+    try {
+      await mqttClient.connect();
+    } catch (e) {
+      print('Error al conectarse a MQTT: $e');
+    }
+  }
+
+  void enviarDatosMQTT() {
+    final List<int> selectionMatrix = buttonStates.values.map((value) => value ? 1 : 0).toList();
+
+    final message = {
+      widget.userEmail,
+      widget.qrId,
+      selectionMatrix.toString(),
+    };
+
+    final builder = MqttClientPayloadBuilder();
+    builder.addString(message.toString());
+
+    final payload = builder.payload;
+
+    if (mqttClient.connectionStatus!.state == MqttConnectionState.connected) {
+      mqttClient.publishMessage('users/route', MqttQos.atMostOnce, payload!);
+      print('Datos enviados a MQTT');
     } else {
-      buttonStates.forEach((key, value) {
-        print('Option: $key, Checked: $value');
-      });
-
-      print('Textfield Content: ${textController.text}');
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => RouteStock()),
-      );
+      print('Error: No se pudo enviar datos a MQTT porque la conexión no está activa.');
     }
   }
 
@@ -157,11 +113,12 @@ class RouteCheck extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                ButtonPair(text: 'Coin Selector'),
-                ButtonPair(text: 'Claw'),
-                ButtonPair(text: 'Joystick'),
-                ButtonPair(text: 'Lights'),
-                ButtonPair(text: 'Other'),
+                ButtonPair(text: 'Coin Selector', buttonStates: buttonStates, updateButtonState: _updateButtonState),
+                ButtonPair(text: 'Motherboard', buttonStates: buttonStates, updateButtonState: _updateButtonState),
+                ButtonPair(text: 'Joystick', buttonStates: buttonStates, updateButtonState: _updateButtonState),
+                ButtonPair(text: 'Claw', buttonStates: buttonStates, updateButtonState: _updateButtonState),
+                ButtonPair(text: 'Lights', buttonStates: buttonStates, updateButtonState: _updateButtonState),
+                ButtonPair(text: 'Other', buttonStates: buttonStates, updateButtonState: _updateButtonState),
                 const Text(
                   'Cleaning',
                   style: TextStyle(
@@ -171,12 +128,11 @@ class RouteCheck extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                ButtonPair(text: 'Showcase'),
-                ButtonPair(text: 'Crystals'),
-                ButtonPair(text: 'Cabinet'),
-                ButtonPair(text: 'Acrylics/Stickers'),
-                ButtonPair(text: 'Other'),
+                ButtonPair(text: 'Showcase', buttonStates: buttonStates, updateButtonState: _updateButtonState),
+                ButtonPair(text: 'Crystals', buttonStates: buttonStates, updateButtonState: _updateButtonState),
+                ButtonPair(text: 'Cabinet', buttonStates: buttonStates, updateButtonState: _updateButtonState),
+                ButtonPair(text: 'Acrylics/Stickers', buttonStates: buttonStates, updateButtonState: _updateButtonState),
+                ButtonPair(text: 'Other Cleaning', buttonStates: buttonStates, updateButtonState: _updateButtonState),
                 const SizedBox(height: 20),
                 const Text(
                   'Observations',
@@ -204,28 +160,13 @@ class RouteCheck extends StatelessWidget {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                    bool allButtonsSelected = validateButtonStates();
+                    bool allButtonsSelected = buttonStates.values.any((value) => value);
 
                     if (allButtonsSelected) {
-                      _navigateToRouteStock(context);
+                      enviarDatosMQTT();
+                      mostrarAlerta('Datos enviados', 'Los datos se han enviado correctamente.');
                     } else {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Error'),
-                            content: const Text('Por favor, asegúrate de que al menos una opción esté seleccionada en cada par.'),
-                            actions: [
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text('OK'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
+                      mostrarAlerta('Error', 'Por favor, selecciona al menos una opción.');
                     }
                   },
                   child: const Text('Send'),
@@ -241,12 +182,106 @@ class RouteCheck extends StatelessWidget {
       ),
     );
   }
+
+  void mostrarAlerta(String title, String message) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+  }
+
+  // Función para actualizar el estado del botón
+  void _updateButtonState(String text, bool value) {
+    setState(() {
+      buttonStates[text] = value;
+    });
+  }
 }
 
+class ButtonPair extends StatefulWidget {
+  final String text;
+  final Map<String, bool> buttonStates;
+  final Function(String, bool) updateButtonState;
 
-void main() {
-  runApp(MaterialApp(
-    home: RouteCheck(),
-    debugShowCheckedModeBanner: false,
-  ));
+  ButtonPair({required this.text, required this.buttonStates, required this.updateButtonState});
+
+  @override
+  _ButtonPairState createState() => _ButtonPairState();
 }
+
+class _ButtonPairState extends State<ButtonPair> {
+  bool isCheckButtonPressed = false;
+  bool isCloseButtonPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              widget.text,
+              style: const TextStyle(color: Colors.white, fontSize: 20),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                isCheckButtonPressed = !isCheckButtonPressed;
+                isCloseButtonPressed = false;
+                widget.updateButtonState(widget.text, isCheckButtonPressed);
+              });
+            },
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 10),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isCheckButtonPressed ? Colors.white : Colors.grey,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.check,
+                  color: isCheckButtonPressed ? Colors.red : Colors.white,
+                  size: 30,
+                ),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                isCloseButtonPressed = !isCloseButtonPressed;
+                isCheckButtonPressed = false;
+                widget.updateButtonState(widget.text, !isCloseButtonPressed);
+              });
+            },
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isCloseButtonPressed ? Colors.white : Colors.grey,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.close,
+                  color: isCloseButtonPressed ? Colors.red : Colors.white,
+                  size: 30,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

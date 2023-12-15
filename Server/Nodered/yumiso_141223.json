@@ -1,0 +1,235 @@
+[
+    {
+        "id": "e5ad2a38cc781055",
+        "type": "tab",
+        "label": "Login",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "f0371f984721d2ab",
+        "type": "mqtt in",
+        "z": "e5ad2a38cc781055",
+        "name": "",
+        "topic": "users",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "b5301229d537219f",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 330,
+        "y": 120,
+        "wires": [
+            [
+                "0d57594e3c29d032",
+                "222febfd7588c5ba"
+            ]
+        ]
+    },
+    {
+        "id": "f8deebf169ca89fe",
+        "type": "debug",
+        "z": "e5ad2a38cc781055",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 940,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "222febfd7588c5ba",
+        "type": "exec",
+        "z": "e5ad2a38cc781055",
+        "command": "python3 /python-scripts/login_group.py ",
+        "addpay": "payload",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "",
+        "x": 590,
+        "y": 120,
+        "wires": [
+            [
+                "f8deebf169ca89fe",
+                "8194a4acf897f61a"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "431f0cbda530ca4d",
+        "type": "mqtt out",
+        "z": "e5ad2a38cc781055",
+        "name": "",
+        "topic": "respuesta",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "b5301229d537219f",
+        "x": 880,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "8194a4acf897f61a",
+        "type": "function",
+        "z": "e5ad2a38cc781055",
+        "name": "function 1",
+        "func": "// Elimina espacios en blanco, tabulaciones y saltos de línea de msg.payload\nmsg.payload = msg.payload.replace(/\\s/g, '');\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 820,
+        "y": 60,
+        "wires": [
+            [
+                "431f0cbda530ca4d"
+            ]
+        ]
+    },
+    {
+        "id": "0d57594e3c29d032",
+        "type": "debug",
+        "z": "e5ad2a38cc781055",
+        "name": "debug 2",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 480,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "765192ff05f4030b",
+        "type": "mqtt in",
+        "z": "e5ad2a38cc781055",
+        "name": "",
+        "topic": "users/maintenance",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "b5301229d537219f",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 210,
+        "y": 320,
+        "wires": [
+            [
+                "42366b5271e5f7d9"
+            ]
+        ]
+    },
+    {
+        "id": "3131bd9f4d902781",
+        "type": "debug",
+        "z": "e5ad2a38cc781055",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 900,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "42366b5271e5f7d9",
+        "type": "function",
+        "z": "e5ad2a38cc781055",
+        "name": "function 2",
+        "func": "// Extraer las partes deseadas usando expresiones regulares\nvar match = msg.payload.match(/\\{([^,]+), (\\d+), \\[([^\\]]+)\\]\\}/);\n\nif (match) {\n  // match[1] contiene la primera parte\n  var primeraParte = match[1];\n\n  // match[2] contiene la segunda parte como cadena, puedes convertirla a número si es necesario\n  var segundaParte = parseInt(match[2], 10);\n\n  // match[3] contiene la tercera parte como una cadena que representa un arreglo JSON, puedes parsearla a un arreglo\n  var terceraParte = JSON.parse(\"[\" + match[3] + \"]\");\n\n  // Crear una cadena con las partes separadas por espacios\n  var resultado = `${primeraParte} ${segundaParte} ${JSON.stringify(terceraParte)}`;\n\n  // Establecer la cadena resultante en msg.payload\n  msg.payload = resultado;\n\n  return msg; // Devuelve el mensaje con el nuevo valor de payload\n} else {\n  node.error(\"La cadena no coincide con el formato esperado.\");\n  return null; // Devuelve null para descartar el mensaje\n}\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 320,
+        "wires": [
+            [
+                "5384d18c557adb26"
+            ]
+        ]
+    },
+    {
+        "id": "5384d18c557adb26",
+        "type": "exec",
+        "z": "e5ad2a38cc781055",
+        "command": "python3 /python-scripts/create_repair_order.py ",
+        "addpay": "payload",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "",
+        "x": 640,
+        "y": 320,
+        "wires": [
+            [
+                "3131bd9f4d902781"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "b5301229d537219f",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "mosquitto",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    }
+]

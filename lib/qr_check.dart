@@ -110,7 +110,7 @@ class _QRCodeScannerAppState extends State<QRCodeScannerApp> {
         case 'Route':
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => RouteCheck()),
+            MaterialPageRoute(builder: (context) => RouteCheck(userEmail: widget.userEmail,qrId: qrId!,)),
           );
           break;
         case 'Maintenance':
