@@ -14,6 +14,10 @@ ids_productos_str = sys.argv[3]  # String de IDs de productos (formato de lista)
 # Eliminar los corchetes y espacios, y luego convertir la cadena en una lista de enteros
 ids_productos = [int(x) for x in ids_productos_str.strip('[]').split(',') if int(x) != 0]
 
+# Excluir el último elemento si es 0 o 1
+if ids_productos and ids_productos[-1] in [0, 1]:
+    ids_productos.pop()
+
 
 
 # URL y credenciales para el servidor XML-RPC

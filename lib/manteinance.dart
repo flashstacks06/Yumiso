@@ -1,7 +1,6 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:fluttertoast/fluttertoast.dart'; // Importa fluttertoast
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
@@ -17,8 +16,8 @@ class Maintenance1 extends StatefulWidget {
 
 MqttServerClient createRandomMqttClient(String broker, int port) {
   final Random random = Random();
-  final int randomNumber = random.nextInt(10000);
-  final String clientId = 'mqtt_client_$randomNumber';
+  final int randomNumber = random.nextInt(10000); // Genera un número aleatorio
+  final String clientId = 'mqtt_client_$randomNumber'; // Nombre de cliente único
 
   final MqttServerClient mqttClient = MqttServerClient.withPort(broker, clientId, port);
 
@@ -26,14 +25,19 @@ MqttServerClient createRandomMqttClient(String broker, int port) {
 }
 
 class _Maintenance1State extends State<Maintenance1> {
-  List<bool> functionalOptions = List.generate(6, (index) => false);
+  List<bool> repairChecked = List.generate(3, (index) => false);
+  List<bool> partReplacementChecked = List.generate(3, (index) => false);
   List<int> selectionMatrix = List.generate(6, (index) => 0);
 
+  // Configura el cliente MQTT
+  
   final MqttServerClient mqttClient = createRandomMqttClient('137.184.86.135', 1883);
 
   @override
   void initState() {
     super.initState();
+
+    // Conecta al servidor MQTT
     _connectToMQTT();
   }
 
@@ -75,23 +79,24 @@ class _Maintenance1State extends State<Maintenance1> {
     );
   }
 
-  void mostrarAlerta(String title, String message) {
-    Fluttertoast.showToast(
-      msg: message,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      timeInSecForIosWeb: 1,
-      backgroundColor: Colors.green,
-      textColor: Colors.white,
-      fontSize: 16.0,
-    );
-  }
+void mostrarAlerta(String title, String message) {
+  Fluttertoast.showToast(
+    msg: message,
+    toastLength: Toast.LENGTH_SHORT,
+    gravity: ToastGravity.BOTTOM,
+    timeInSecForIosWeb: 1,
+    backgroundColor: Colors.green, // Color de fondo de la alerta
+    textColor: Colors.white, // Color del texto de la alerta
+    fontSize: 16.0,
+  );
+}
 
   @override
   Widget build(BuildContext context) {
     List<String> titles = ['Coin Selector', 'Motherboard', 'Joystick'];
 
-    List<Widget> functionalOptionWidgets = [];
+    List<Widget> repairWidgets = [];
+    List<Widget> partReplacementWidgets = [];
     List<Widget> images = [];
 
     for (var i = 0; i < 3; i++) {
@@ -112,20 +117,67 @@ class _Maintenance1State extends State<Maintenance1> {
         ),
       );
 
-      functionalOptionWidgets.add(
+      repairWidgets.add(
         Column(
           children: [
             largeCheckbox(
-              functionalOptions[i],
+              repairChecked[i],
               (value) {
                 setState(() {
-                  functionalOptions[i] = value!;
-                  int optionValue = value ? 1 : 0;
-                  selectionMatrix[i] = optionValue;
+                  repairChecked[i] = value!;
+                  int repairValue;
+                  switch (i) {
+                    case 0:
+                      repairValue = 9;
+                      break;
+                    case 1:
+                      repairValue = 11;
+                      break;
+                    case 2:
+                      repairValue = 10;
+                      break;
+                    default:
+                      repairValue = 0;
+                      break;
+                  }
+                  selectionMatrix[i] = value ? repairValue : 0;
                 });
               },
               i,
-              'Functional',
+              'Repair',
+            ),
+          ],
+        ),
+      );
+
+      partReplacementWidgets.add(
+        Column(
+          children: [
+            largeCheckbox(
+              partReplacementChecked[i],
+              (value) {
+                setState(() {
+                  partReplacementChecked[i] = value!;
+                  int replacementValue;
+                  switch (i) {
+                    case 0:
+                      replacementValue = 5;
+                      break;
+                    case 1:
+                      replacementValue = 7;
+                      break;
+                    case 2:
+                      replacementValue = 8;
+                      break;
+                    default:
+                      replacementValue = 0;
+                      break;
+                  }
+                  selectionMatrix[i + 3] = value ? replacementValue : 0;
+                });
+              },
+              i,
+              'Part Replacement',
             ),
           ],
         ),
@@ -150,21 +202,31 @@ class _Maintenance1State extends State<Maintenance1> {
               ),
               SizedBox(height: 20),
               Text(
-                'Functional',
+                'Repair',
                 style: TextStyle(fontSize: 28, fontFamily: 'Cabin', color: Colors.white),
               ),
               SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: functionalOptionWidgets,
+                children: repairWidgets,
+              ),
+              Text(
+                'Part Replacement',
+                style: TextStyle(fontSize: 28, fontFamily: 'Cabin', color: Colors.white),
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: partReplacementWidgets,
               ),
               ElevatedButton(
                 onPressed: () {
                   print('Correo Electrónico: ${widget.userEmail}');
                   print('QR ID: ${widget.qrId}');
                   print('Selecciones: $selectionMatrix');
-                  enviarDatosMQTT();
-
+                  enviarDatosMQTT(); // Envía los datos al tópico MQTT
+                  
+                  // Muestra una alerta según si se envían los datos o no
                   if (mqttClient.connectionStatus!.state == MqttConnectionState.connected) {
                     mostrarAlerta('Orden creada', 'La orden de mantenimiento se ha creado correctamente.');
                   } else {

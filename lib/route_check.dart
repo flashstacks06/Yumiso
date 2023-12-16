@@ -5,7 +5,6 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
 class RouteCheck extends StatefulWidget {
-  
   final String userEmail;
   final String qrId;
   RouteCheck({Key? key, required this.userEmail, required this.qrId}) : super(key: key);
@@ -37,7 +36,6 @@ class _RouteCheckState extends State<RouteCheck> {
   }
 
   void initializeButtonStates() {
-    // Inicializa las opciones con valores predeterminados (falsos)
     buttonStates = {
       'Coin Selector': false,
       'Motherboard': false,
@@ -61,25 +59,67 @@ class _RouteCheckState extends State<RouteCheck> {
     }
   }
 
-  void enviarDatosMQTT() {
-    final List<int> selectionMatrix = buttonStates.values.map((value) => value ? 1 : 0).toList();
+  List<int> generateSelectionMatrix(Map<String, bool> buttonStates) {
+    final optionValues = {
+      'Coin Selector': [5, 9],
+      'Motherboard': [7, 11],
+      'Joystick': [8, 10],
+      'Claw': [14, 13],
+      'Lights': [16, 15],
+      'Other': [1],  // 'Other' solo toma un valor
+      // Agrega aquí las demás opciones si las hay
+    };
 
-    final message = {
+    List<int> selectionMatrix = [];
+
+    for (var entry in optionValues.entries) {
+      final isSelected = buttonStates[entry.key] ?? false;
+      if (isSelected) {
+        selectionMatrix.addAll(List.filled(entry.value.length, 0));
+      } else {
+        selectionMatrix.addAll(entry.value);
+      }
+    }
+
+    return selectionMatrix;
+  }
+
+  void enviarDatosMQTT() {
+    final selectionMatrix = generateSelectionMatrix(buttonStates);
+
+    final message = [
       widget.userEmail,
       widget.qrId,
       selectionMatrix.toString(),
-    };
+    ];
+
+    final formattedMessage = '{${message.join(', ')}}';
 
     final builder = MqttClientPayloadBuilder();
-    builder.addString(message.toString());
-
+    builder.addString(formattedMessage);
     final payload = builder.payload;
 
     if (mqttClient.connectionStatus!.state == MqttConnectionState.connected) {
       mqttClient.publishMessage('users/route', MqttQos.atMostOnce, payload!);
-      print('Datos enviados a MQTT');
+      Fluttertoast.showToast(
+        msg: 'Datos enviados a MQTT',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     } else {
-      print('Error: No se pudo enviar datos a MQTT porque la conexión no está activa.');
+      Fluttertoast.showToast(
+        msg: 'Error: No se pudo enviar datos a MQTT porque la conexión no está activa.',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     }
   }
 
@@ -113,12 +153,12 @@ class _RouteCheckState extends State<RouteCheck> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                ButtonPair(text: 'Coin Selector', buttonStates: buttonStates, updateButtonState: _updateButtonState),
-                ButtonPair(text: 'Motherboard', buttonStates: buttonStates, updateButtonState: _updateButtonState),
-                ButtonPair(text: 'Joystick', buttonStates: buttonStates, updateButtonState: _updateButtonState),
-                ButtonPair(text: 'Claw', buttonStates: buttonStates, updateButtonState: _updateButtonState),
-                ButtonPair(text: 'Lights', buttonStates: buttonStates, updateButtonState: _updateButtonState),
-                ButtonPair(text: 'Other', buttonStates: buttonStates, updateButtonState: _updateButtonState),
+                // Button pairs for 'Functional' options
+                ...buttonStates.keys.take(6).map((String key) => ButtonPair(
+                  text: key,
+                  buttonStates: buttonStates,
+                  updateButtonState: _updateButtonState,
+                )).toList(),
                 const Text(
                   'Cleaning',
                   style: TextStyle(
@@ -127,21 +167,12 @@ class _RouteCheckState extends State<RouteCheck> {
                     fontFamily: 'Cabin',
                   ),
                 ),
-                const SizedBox(height: 20),
-                ButtonPair(text: 'Showcase', buttonStates: buttonStates, updateButtonState: _updateButtonState),
-                ButtonPair(text: 'Crystals', buttonStates: buttonStates, updateButtonState: _updateButtonState),
-                ButtonPair(text: 'Cabinet', buttonStates: buttonStates, updateButtonState: _updateButtonState),
-                ButtonPair(text: 'Acrylics/Stickers', buttonStates: buttonStates, updateButtonState: _updateButtonState),
-                ButtonPair(text: 'Other Cleaning', buttonStates: buttonStates, updateButtonState: _updateButtonState),
-                const SizedBox(height: 20),
-                const Text(
-                  'Observations',
-                  style: TextStyle(
-                    fontSize: 30,
-                    color: Colors.white,
-                    fontFamily: 'Cabin',
-                  ),
-                ),
+                // Button pairs for 'Cleaning' options
+                ...buttonStates.keys.skip(6).map((String key) => ButtonPair(
+                  text: key,
+                  buttonStates: buttonStates,
+                  updateButtonState: _updateButtonState,
+                )).toList(),
                 const SizedBox(height: 20),
                 TextField(
                   controller: textController,
@@ -159,16 +190,7 @@ class _RouteCheckState extends State<RouteCheck> {
                 ),
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () {
-                    bool allButtonsSelected = buttonStates.values.any((value) => value);
-
-                    if (allButtonsSelected) {
-                      enviarDatosMQTT();
-                      mostrarAlerta('Datos enviados', 'Los datos se han enviado correctamente.');
-                    } else {
-                      mostrarAlerta('Error', 'Por favor, selecciona al menos una opción.');
-                    }
-                  },
+                  onPressed: enviarDatosMQTT,
                   child: const Text('Send'),
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
@@ -183,19 +205,6 @@ class _RouteCheckState extends State<RouteCheck> {
     );
   }
 
-  void mostrarAlerta(String title, String message) {
-    Fluttertoast.showToast(
-      msg: message,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      timeInSecForIosWeb: 1,
-      backgroundColor: Colors.green,
-      textColor: Colors.white,
-      fontSize: 16.0,
-    );
-  }
-
-  // Función para actualizar el estado del botón
   void _updateButtonState(String text, bool value) {
     setState(() {
       buttonStates[text] = value;
@@ -284,4 +293,3 @@ class _ButtonPairState extends State<ButtonPair> {
     );
   }
 }
-

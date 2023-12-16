@@ -1,4 +1,4 @@
-#Thu Dec 14 18:17:13 CST 2023
+#Fri Dec 15 20:26:03 CST 2023
 base.0=C\:\\Users\\carl2\\OneDrive\\carlos\\Escritorio\\Yumiso\\build\\app\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
 base.1=C\:\\Users\\carl2\\OneDrive\\carlos\\Escritorio\\Yumiso\\build\\app\\intermediates\\dex\\debug\\mergeLibDexDebug\\0\\classes.dex
 base.2=C\:\\Users\\carl2\\OneDrive\\carlos\\Escritorio\\Yumiso\\build\\app\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
