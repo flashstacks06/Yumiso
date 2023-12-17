@@ -26,16 +26,26 @@ def decrypt_aes(encrypted_data, base64_key, base64_iv):
 # Función para buscar al cliente
 def buscar_cliente(correo_cliente_enc, key, iv):
     correo_cliente = decrypt_aes(correo_cliente_enc, key, iv).strip()  # Elimina .decode('utf-8')
-    print(f"Correo desencriptado: {correo_cliente}")
     cliente = models.execute_kw(db, uid, password,
         'res.partner', 'search_read',
         [[['email', '=', correo_cliente]]],
         {'fields': ['id', 'email'], 'limit': 1})
     if cliente:
-        print(f"ID del cliente encontrado: {cliente[0]['id']}")
         return {'id': cliente[0]['id'], 'login': cliente[0]['email']}
     else:
         return None
+
+# Función para confirmar la orden de reparación
+def confirmar_orden_reparacion(orden_id):
+    models.execute_kw(db, uid, password, 'repair.order', 'action_validate', [orden_id])
+
+# Función para iniciar la orden de reparación
+def iniciar_orden_reparacion(orden_id):
+    models.execute_kw(db, uid, password, 'repair.order', 'action_repair_start', [orden_id])
+
+def finalizar_orden_reparacion(orden_id):
+    models.execute_kw(db, uid, password, 'repair.order', 'action_repair_end', [orden_id])
+
 
 # Clave y IV predefinidos para desencriptación
 key = 'O1GqAK5igRS-BTYgSVLBvg=='
@@ -44,9 +54,11 @@ iv = 'v0kiTpvIvAN1IoFQNyB1IQ=='
 # Argumentos de la línea de comandos
 numero_maquina = sys.argv[2]  # Número de la máquina
 ids_productos_str = sys.argv[3]  # String de IDs de productos (formato de lista)
+print(ids_productos_str)
 correo_cliente_enc = sys.argv[1]  # Correo electrónico del cliente encriptado
 
 ids_productos = [int(x) for x in ids_productos_str.strip('[]').split(',') if int(x) != 0]
+print(ids_productos)
 
 # URL y credenciales para el servidor XML-RPC
 url = 'http://137.184.86.135:8069'
@@ -59,6 +71,9 @@ common = xmlrpc.client.ServerProxy(f'{url}/xmlrpc/2/common')
 uid = common.authenticate(db, username, password, {})
 models = xmlrpc.client.ServerProxy(f'{url}/xmlrpc/2/object')
 
+# Convertir los IDs de productos en una lista de enteros
+#ids_productos = [int(x) for x in ids_productos_str.strip('[]').split(',') if x.isdigit()]
+#print(ids_productos)
 # Desencriptar el correo electrónico del cliente
 correo_cliente = decrypt_aes(correo_cliente_enc, key, iv)
 
@@ -74,6 +89,7 @@ location_dest_id = 15
 # Buscar órdenes de reparación en estado 'draft' para la máquina especificada
 search_domain = [('product_id', '=', producto_id), ('state', '=', 'draft')]
 draft_repair_ids = models.execute_kw(db, uid, password, 'repair.order', 'search', [search_domain])
+
 
 # Actualizar las órdenes de reparación
 for repair_id in draft_repair_ids:
@@ -103,5 +119,15 @@ for repair_id in draft_repair_ids:
     if cliente:
         cliente_id = cliente['id']
         models.execute_kw(db, uid, password, 'repair.order', 'write', [[repair_id], {'partner_id': cliente_id}])
+
+    # Confirmar la orden de reparación
+    confirmar_orden_reparacion(repair_id)
+
+    # Iniciar la orden de reparación
+    iniciar_orden_reparacion(repair_id)
+
+    # Finalizar la orden de reparación
+    finalizar_orden_reparacion(repair_id)
+
 
 print(f"Las órdenes de reparación en estado 'draft' para 'Maquina {numero_maquina}' han sido actualizadas.")
