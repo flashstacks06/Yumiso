@@ -21,28 +21,30 @@ product_ids = models.execute_kw(db, uid, password,
 # Obtener la información de los productos
 products = models.execute_kw(db, uid, password,
     'product.product', 'read',
-    [product_ids], {'fields': ['name', 'lst_price', 'qty_available']})
+    [product_ids], {'fields': ['name', 'lst_price', 'qty_available', 'virtual_available']})
 
-# Obtener la información de los almacenes
+# Información de los almacenes
 warehouses = models.execute_kw(db, uid, password,
     'stock.warehouse', 'search_read',
     [[]], {'fields': ['id', 'name', 'lot_stock_id']})
 
-# Crear un diccionario para mapear IDs de ubicaciones de stock a nombres e IDs de almacenes
+# Mapeo de ubicaciones de stock a almacenes
 location_to_warehouse = {wh['lot_stock_id'][0]: (wh['id'], wh['name']) for wh in warehouses}
 
-# Obtener las cantidades de productos por ubicación
+# Cantidades de productos por ubicación
 for product in products:
-    product_id = product['id']
+    print("Producto:", product['name'])
+    print("Cantidad Disponible (Global):", product['qty_available'])
+    print("Cantidad Virtual Disponible (Global):", product['virtual_available'])
+    
     qty_by_location = models.execute_kw(db, uid, password,
         'stock.quant', 'search_read',
-        [[['product_id', '=', product_id], ['location_id', 'in', list(location_to_warehouse.keys())]]],
+        [[['product_id', '=', product['id']], ['location_id', 'in', list(location_to_warehouse.keys())]]],
         {'fields': ['location_id', 'quantity']})
-
-    print("Producto:", product['name'])
+    
     for qty in qty_by_location:
         location_id = qty['location_id'][0]
         warehouse_info = location_to_warehouse.get(location_id, ("ID desconocido", "Ubicación desconocida"))
         warehouse_id, warehouse_name = warehouse_info
-        print(f"ID Almacén: {warehouse_id}, Almacén: {warehouse_name}, Cantidad: {qty['quantity']} Unidades disponible")
+        print(f"En Almacén: {warehouse_name}, Cantidad: {qty['quantity']}")
     print("-" * 30)

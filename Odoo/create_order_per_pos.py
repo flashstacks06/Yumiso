@@ -77,7 +77,7 @@ def crear_orden_pos(product_ids, session_id, cliente_id):
     return order_id
 
 # Nombre del punto de venta a buscar (reemplazar con el nombre correcto)
-nombre_punto_de_venta = 'Maquina 1'
+nombre_punto_de_venta = 'Maquina 12'
 
 try:
     id_punto_de_venta = obtener_id_punto_de_venta_por_nombre(nombre_punto_de_venta)

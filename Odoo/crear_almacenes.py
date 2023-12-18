@@ -14,7 +14,7 @@ uid = common.authenticate(db, username, password, {})
 models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(url))
 
 # Crear 10 almacenes
-for i in range(1, 11):
+for i in range(12, 14):
     # Nombre largo y corto del almacén
     long_name = f"Maquina {i}"
     short_name = f"M{i}"
