@@ -1,97 +1,56 @@
-from xmlrpc import client as xmlrpclib
-from xmlrpc.client import ServerProxy
+import xmlrpc.client
 
-# Configura la conexión XML-RPC con tu instancia de Odoo
+# Configuración de la conexión
 url = 'http://137.184.86.135:8069/'
 db = 'yumiso'
 username = 'info@inventoteca.com'
-password = 'Gr4nj3r04dm1n'  # Reemplaza con la contraseña real
+password = 'Gr4nj3r04dm1n'
 
+# Conexión al servidor de Odoo
 common = xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(url))
 uid = common.authenticate(db, username, password, {})
-
 models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(url))
 
-# Define el nombre del punto de venta
-point_of_sale_name = "Test"  # Reemplaza con el nombre de tu punto de venta
+# Nombre del modelo
+modelo_sesion = 'pos.session'
+modelo_config = 'pos.config'
 
-# Busca el ID del punto de venta en base al nombre
-pos_config_ids = models.execute_kw(db, uid, password, 'pos.config', 'search', [[('name', '=', point_of_sale_name)]])
-if not pos_config_ids:
-    raise Exception(f"No se encontró el punto de venta con el nombre '{point_of_sale_name}'")
-
-pos_config_id = pos_config_ids[0]
-
-# Crea una nueva sesión de punto de venta
-session_name = "Mi Sesión"
-session_id = models.execute_kw(db, uid, password, 'pos.session', 'create', [{
-    'name': session_name,
-    'config_id': pos_config_id,  # Asocia la sesión con el punto de venta
-}])
-
-# Verifica el ID de la sesión creada
-print(f"Sesión creada con ID: {session_id}")
-
-# Abre la sesión
-try:
-    models.execute_kw(db, uid, password, 'pos.session', 'open', [session_id])
-    print("Sesión abierta exitosamente.")
-except Exception as e:
-    print(f"Error al abrir la sesión: {e}")
-
-# Crea una orden de punto de venta
-customer_name = "route@yumiso.com"
-order_vals = {
-    'session_id': session_id,
-    'partner_id': False,  # Puedes asociar un cliente si es necesario
-    'name': customer_name,
-}
-try:
-    order_id = models.execute_kw(db, uid, password, 'pos.order', 'create', [order_vals])
-    print(f"Orden creada con ID: {order_id}")
-except Exception as e:
-    print(f"Error al crear la orden: {e}")
-    order_id = None  # Definimos la variable order_id como None en caso de error
-
-# Agrega los productos a la orden con sus precios reales
-product_ids = [21, 25, 23]  # IDs de los productos que se agregarán a la orden
-if order_id:
-    for product_id in product_ids:
-        product = models.execute_kw(db, uid, password, 'product.product', 'read', [product_id], {'fields': ['name', 'lst_price']})
-        order_line_vals = {
-            'order_id': order_id,
-            'product_id': product_id,
-            'name': product[0]['name'],
-            'price_unit': product[0]['lst_price'],  # Precio del producto
-            'qty': 1,  # Cantidad
-        }
-        try:
-            models.execute_kw(db, uid, password, 'pos.order.line', 'create', [order_line_vals])
-            print(f"Producto agregado a la orden: {product[0]['name']}")
-        except Exception as e:
-            print(f"Error al agregar el producto a la orden: {e}")
-
-# Realiza un pago (puedes agregar más métodos de pago según sea necesario)
-payment_method_id = 1  # ID del método de pago
-payment_vals = {
-    'amount': 30.0,  # Monto a pagar
-    'payment_date': xmlrpclib.DateTime(fields.datetime.now()),
-    'payment_name': 'Efectivo',  # Nombre del método de pago
-    'journal_id': payment_method_id,
-    'order_id': order_id,
-}
-if order_id:
+def cerrar_sesion_punto_venta(nombre_punto_venta, monto_contado):
     try:
-        models.execute_kw(db, uid, password, 'pos.payment', 'create', [payment_vals])
-        print("Pago realizado exitosamente.")
+        # Buscar el punto de venta por nombre para obtener su ID
+        pos_config_ids = models.execute_kw(db, uid, password, modelo_config, 'search', [[['name', '=', nombre_punto_venta]]])
+        if not pos_config_ids:
+            print("No se encontró el punto de venta con ese nombre.")
+            return
+
+        # Buscar la sesión del punto de venta por el ID de configuración
+        session_ids = models.execute_kw(db, uid, password, modelo_sesion, 'search', [[['config_id', 'in', pos_config_ids], ['state', '!=', 'closed']]])
+        if not session_ids:
+            print("No se encontró una sesión activa para ese punto de venta.")
+            return
+
+        # Actualizar la sesión con el monto contado
+        cierra = models.execute_kw(db, uid, password, modelo_sesion, 'write', [session_ids[0], {
+            'cash_register_total_entry_encoding': monto_contado,
+        }])
+
+        print(cierra)
+        # Aceptar las diferencias de pago y cerrar la sesión
+        models.execute_kw(db, uid, password, modelo_sesion, 'action_pos_session_closing_control', [session_ids[0]])
+
+        print(f"Sesión del punto de venta '{nombre_punto_venta}' cerrada correctamente con un monto contado de: ${monto_contado}")
+
+    except xmlrpc.client.Fault as error:
+        print(f"Error al cerrar la sesión: {error.faultCode} - {error.faultString}")
+
     except Exception as e:
-        print(f"Error al realizar el pago: {e}")
+        print(f"Error general: {e}")
 
-# Cierra la sesión sin importar si la orden se cierra con menos dinero
-try:
-    models.execute_kw(db, uid, password, 'pos.session', 'close', [session_id])
-    print("Sesión cerrada exitosamente.")
-except Exception as e:
-    print(f"Error al cerrar la sesión: {e}")
-
-# Puedes agregar manejo de excepciones y otras validaciones según tus necesidades
+# Ejecutar el script
+if __name__ == '__main__':
+    # Nombre del punto de venta que deseas cerrar
+    nombre_punto_venta = input("Ingresa el nombre del punto de venta que quieres cerrar: ")
+    monto_contado = int(input("Ingresa el monto contado en la sesión: "))  # Solicitar el monto contado al usuario
+    
+    # Llamar a la función para cerrar la sesión con el nombre del punto de venta y el monto contado
+    cerrar_sesion_punto_venta(nombre_punto_venta, monto_contado)
