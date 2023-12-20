@@ -1,66 +1,21 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'route_moneybag.dart';
+import 'route_moneybag.dart'; // Asegúrate de tener esta ruta y página definidas en tu proyecto
 
-class RouteStock extends StatelessWidget {
-  const RouteStock({Key? key});
+class RouteStock extends StatefulWidget {
+  final String userEmail;
+  final String qrId;
 
-  Stream<List<Widget>> getImages(BuildContext context, String type) async* {
-    List<Widget> images = [];
-    double imageSize = MediaQuery.of(context).size.width * 0.3;
+  RouteStock({Key? key, required this.userEmail, required this.qrId}) : super(key: key);
 
-    for (var i = 1; i <= 5; i++) {
-      final image = Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black, width: 2), // Marco negro
-        ),
-        child: Image.asset(
-          'img/mod$i.jpg',
-          fit: BoxFit.cover,
-          height: imageSize,
-          width: imageSize,
-        ),
-      );
+  @override
+  _RouteStockState createState() => _RouteStockState();
+}
 
-      final title = Text(
-        'Mod $i',
-        style: const TextStyle(fontSize: 16, color: Colors.white, fontFamily: 'Cabin'),
-        textAlign: TextAlign.center,
-      );
-
-      final numberEntry = Container(
-        width: 65,
-        height: 40,
-        margin: const EdgeInsets.only(top: 10),
-        decoration: BoxDecoration(
-          color: Colors.white, // Color de fondo blanco
-          borderRadius: BorderRadius.circular(8), // Bordes redondeados (ajusta según lo necesites)
-        ),
-        child: const TextField(
-          keyboardType: TextInputType.number,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, color: Colors.black),
-          decoration: InputDecoration(
-            border: InputBorder.none, // Elimina el borde predeterminado del TextField
-          ),
-        ),
-      );
-
-      images.add(Column(
-        children: [
-          image,
-          const SizedBox(height: 10), //Cambia el espacio del texto de cada imagen
-          title,
-          numberEntry,
-          const SizedBox(height: 20), //Cambia el espacio entre cada fila de imágenes
-        ],
-      ));
-
-      if (i == 5) {
-        yield images;
-      }
-    }
-  }
+class _RouteStockState extends State<RouteStock> {
+  final List<TextEditingController> stockTextControllers = List.generate(5, (_) => TextEditingController());
+  final List<TextEditingController> refillTextControllers = List.generate(5, (_) => TextEditingController());
+  final List<int> stockIndices = [14, 15, 16, 21, 22]; // Índices fijos para stock y refill
 
   @override
   Widget build(BuildContext context) {
@@ -70,72 +25,11 @@ class RouteStock extends StatelessWidget {
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
-              const SizedBox(height: 16.0), // Espacio añadido para separar del borde superior
-              Container(
-                alignment: Alignment.center,
-                child: const Text(
-                  'Stock And Refill',
-                  style: TextStyle(fontSize: 36, color: Colors.white, fontFamily: 'Cabin'),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                alignment: Alignment.center,
-                child: const Text(
-                  'Stock',
-                  style: TextStyle(fontSize: 28, color: Colors.white, fontFamily: 'Cabin'),
-                ),
-              ),
-              const SizedBox(height: 20),
-              StreamBuilder<List<Widget>>(
-                stream: getImages(context, 'Stock'),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return Wrap(
-                      spacing: 10.0,
-                      runSpacing: 10.0,
-                      alignment: WrapAlignment.center,
-                      children: snapshot.data!,
-                    );
-                  } else {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                },
-              ),
-              //const SizedBox(height: 30), // Espacio añadido entre grupos de imágenes
-              Container(
-                alignment: Alignment.center,
-                child: const Text(
-                  'Refill',
-                  style: TextStyle(fontSize: 28, color: Colors.white, fontFamily: 'Cabin'),
-                ),
-              ),
-              const SizedBox(height: 30), // Espacio añadido entre grupos de imágenes
-              StreamBuilder<List<Widget>>(
-                stream: getImages(context, 'Refill'),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return Wrap(
-                      spacing: 10.0,
-                      runSpacing: 10.0,
-                      alignment: WrapAlignment.center,
-                      children: snapshot.data!,
-                    );
-                  } else {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                },
-              ),
-              const SizedBox(height: 20), // Espacio añadido después de las imágenes
-              ElevatedButton(
-                onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const MoneybagPage()),
-                    );  
-                },
-                child: const Text('Send'),
-              ),
+              const SizedBox(height: 16.0),
+              buildHeader('Stock And Refill'),
+              buildSection('Stock', stockTextControllers, context, stockIndices),
+              buildSection('Refill', refillTextControllers, context, stockIndices),
+              buildSendButton(widget.userEmail, widget.qrId),
               const SizedBox(height: 20),
             ],
           ),
@@ -143,11 +37,118 @@ class RouteStock extends StatelessWidget {
       ),
     );
   }
-}
 
-void main() {
-  runApp(MaterialApp(
-    home: RouteStock(),
-    debugShowCheckedModeBanner: false,
-  ));
+  Widget buildHeader(String title) {
+    return Container(
+      alignment: Alignment.center,
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 36, color: Colors.white, fontFamily: 'Cabin'),
+      ),
+    );
+  }
+
+  Widget buildSection(String title, List<TextEditingController> controllers, BuildContext context, List<int> indices) {
+    return Column(
+      children: <Widget>[
+        Container(
+          alignment: Alignment.center,
+          child: Text(
+            title,
+            style: const TextStyle(fontSize: 28, color: Colors.white, fontFamily: 'Cabin'),
+          ),
+        ),
+        const SizedBox(height: 20),
+        StreamBuilder<List<Widget>>(
+          stream: getImages(context, controllers, indices),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Wrap(
+                spacing: 10.0,
+                runSpacing: 10.0,
+                alignment: WrapAlignment.center,
+                children: snapshot.data!,
+              );
+            } else {
+              return const Center(child: CircularProgressIndicator());
+            }
+          },
+        ),
+        const SizedBox(height: 30),
+      ],
+    );
+  }
+
+  Widget buildSendButton(String userEmail, String qrId) {
+    return ElevatedButton(
+      onPressed: () {
+        final stockValues = getCombinedValues(stockTextControllers, stockIndices);
+        final refillValues = getCombinedValues(refillTextControllers, stockIndices);
+        final combinedValues = [...stockValues, ...refillValues];
+        print('Valores combinados: $combinedValues');
+        print('Correo: $userEmail'); // Imprimir correo
+        print('ID: $qrId'); // Imprimir ID
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MoneybagPage(userEmail: widget.userEmail,qrId: widget.qrId,combinedValues:combinedValues,),),
+        );
+      },
+      child: const Text('Send'),
+    );
+  }
+
+  Stream<List<Widget>> getImages(BuildContext context, List<TextEditingController> controllers, List<int> indices) async* {
+    List<Widget> images = [];
+    double imageSize = MediaQuery.of(context).size.width * 0.3;
+
+    for (var i = 0; i < indices.length; i++) {
+      String imagePath = 'img/mod${(i % 5) + 1}.jpg'; // Utiliza imágenes del mod1.jpg al mod5.jpg cíclicamente
+      final image = Container(
+        decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 2)),
+        child: Image.asset(
+          imagePath,
+          fit: BoxFit.cover,
+          height: imageSize,
+          width: imageSize,
+        ),
+      );
+
+      final title = Text(
+        'Mod ${indices[i]}',
+        style: const TextStyle(fontSize: 16, color: Colors.white, fontFamily: 'Cabin'),
+        textAlign: TextAlign.center,
+      );
+
+      final numberEntry = Container(
+        width: 65,
+        height: 40,
+        margin: const EdgeInsets.only(top: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: TextField(
+          controller: controllers[i],
+          keyboardType: TextInputType.number,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 16, color: Colors.black),
+          decoration: const InputDecoration(border: InputBorder.none),
+        ),
+      );
+
+      images.add(Column(
+        children: [image, const SizedBox(height: 10), title, numberEntry, const SizedBox(height: 20)],
+      ));
+    }
+    yield images;
+  }
+
+  List<String> getCombinedValues(List<TextEditingController> controllers, List<int> indices) {
+    return indices.asMap().entries.map((entry) {
+      final index = entry.key;
+      final fixedIndex = entry.value;
+      final text = controllers[index].text;
+      return '$fixedIndex:${int.tryParse(text) ?? 0}';
+    }).toList();
+  }
 }

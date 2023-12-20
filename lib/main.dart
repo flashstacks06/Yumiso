@@ -1,12 +1,15 @@
 import 'dart:math';
+import 'package:flutter/services.dart'; // Para controlar la visibilidad del texto del campo de contraseña
 import 'package:flutter/material.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
 // Importa tus otras pantallas aquí
+//import 'route_check.dart';
 import 'arcade_first.dart';
-import 'qr_check.dart';
+//import 'manteinance.dart';
+import 'qr_check.dart'; // Asume que tu pantalla de escaneo de QR está en 'qr_check.dart'
 
 void main() {
   runApp(const MainApp());
@@ -21,6 +24,8 @@ class MainApp extends StatelessWidget {
       home: MyHomePage(),
       debugShowCheckedModeBanner: false,
       routes: {
+        //'/route1': (context) => RouteCheck(),
+        //'/manteinance1': (context) => Maintenance1(),
         '/arcade1': (context) => const Arcade1(),
       },
     );
@@ -40,9 +45,6 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isLoading = false;
   String? errorMessage;
   String? userEmail;
-
-  // Estado para rastrear la visibilidad de la contraseña
-  bool _passwordVisible = false;
 
   void login() async {
     setState(() {
@@ -67,20 +69,21 @@ class _MyHomePageState extends State<MyHomePage> {
     await enviarDatosMQTT(encryptedUsername, encryptedPassword);
   }
 
-  MqttServerClient createRandomMqttClient(String broker, int port) {
-    final Random random = Random();
-    final int randomNumber = random.nextInt(10000);
-    final String clientId = 'mqtt_client_$randomNumber';
+MqttServerClient createRandomMqttClient(String broker, int port) {
+  final Random random = Random();
+  final int randomNumber = random.nextInt(10000); // Genera un número aleatorio
+  final String clientId = 'mqtt_client_$randomNumber'; // Nombre de cliente único
 
-    final MqttServerClient mqttClient = MqttServerClient.withPort(broker, clientId, port);
+  final MqttServerClient mqttClient = MqttServerClient.withPort(broker, clientId, port);
 
-    return mqttClient;
-  }
+  return mqttClient;
+}
 
   String encryptData(String data) {
     final key = encrypt.Key.fromBase64('O1GqAK5igRS-BTYgSVLBvg==');
     final iv = encrypt.IV.fromBase64('v0kiTpvIvAN1IoFQNyB1IQ==');
-    final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
+    final encrypter =
+        encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
     final encrypted = encrypter.encrypt(data, iv: iv);
     return encrypted.base64;
   }
@@ -109,14 +112,16 @@ class _MyHomePageState extends State<MyHomePage> {
         builder.payload!,
       );
 
+      // Suscribirse a un tópico para recibir la respuesta
       const respuestaTopico = 'respuesta';
       client.subscribe(respuestaTopico, MqttQos.atLeastOnce);
 
       client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
         final MqttPublishMessage message = c[0].payload as MqttPublishMessage;
-        final payload = MqttPublishPayload.bytesToStringAsString(message.payload.message);
+        final payload =
+            MqttPublishPayload.bytesToStringAsString(message.payload.message);
 
-        _navegarSegunRespuesta(payload, username);
+        _navegarSegunRespuesta(payload,username);
       });
     } else {
       print('Error al conectarse al broker MQTT');
@@ -126,7 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _navegarSegunRespuesta(String respuesta, String username) {
+  void _navegarSegunRespuesta(String respuesta,String username) {
     setState(() {
       _isLoading = false;
     });
@@ -137,14 +142,14 @@ class _MyHomePageState extends State<MyHomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => QRCodeScannerApp(mqttResponse: respuesta, userEmail: username),
+            builder: (context) => QRCodeScannerApp(mqttResponse: respuesta,userEmail:username),
           ),
         );
         break;
       case 'Arcade':
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const Arcade1()),
+          MaterialPageRoute(builder: (context) => Arcade1()),
         );
         break;
       default:
@@ -189,26 +194,14 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                // Campo de contraseña con icono de mostrar/ocultar
                 TextField(
                   controller: passwordController,
-                  obscureText: !_passwordVisible, // Oculta o muestra la contraseña
+                  obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Password',
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(),
-                    suffixIcon: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _passwordVisible = !_passwordVisible;
-                        });
-                      },
-                      child: Icon(
-                        _passwordVisible ? Icons.visibility : Icons.visibility_off,
-                        color: Colors.grey,
-                      ),
-                    ),
                   ),
                 ),
                 const SizedBox(height: 20),

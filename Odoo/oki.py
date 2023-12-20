@@ -1,50 +1,58 @@
 import xmlrpc.client
+from datetime import datetime
 
-# Configuración de la conexión
+# Datos de conexión a Odoo
 url = 'http://137.184.86.135:8069/'
 db = 'yumiso'
 username = 'info@inventoteca.com'
 password = 'Gr4nj3r04dm1n'
 
 # Conexión al servidor de Odoo
-common = xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(url))
+common = xmlrpc.client.ServerProxy(f'{url}/xmlrpc/2/common')
 uid = common.authenticate(db, username, password, {})
-models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(url))
+models = xmlrpc.client.ServerProxy(f'{url}/xmlrpc/2/object')
 
-# Función para obtener el valor de cierre y la diferencia de una sesión de punto de venta
-def obtener_info_cierre(nombre_punto_venta, numero_pos):
-    try:
-        # Buscar el punto de venta por nombre para obtener su ID
-        pos_config_id = models.execute_kw(db, uid, password, 'pos.config', 'search', [[['name', '=', nombre_punto_venta]]])
-        if not pos_config_id:
-            print("No se encontró el punto de venta con ese nombre.")
-            return
+def obtener_id_punto_de_venta_por_nombre(nombre_punto_de_venta):
+    pos_config_ids = models.execute_kw(db, uid, password, 'pos.config', 'search', [[('name', '=', nombre_punto_de_venta)]])
+    return pos_config_ids[0] if pos_config_ids else None
 
-        # Construir el nombre de la sesión completo con el formato adecuado
-        pos_session_name = f"POS/{str(numero_pos).zfill(5)}"  # Ejemplo: "POS/00051"
+def buscar_o_crear_cliente_por_correo(correo_cliente):
+    cliente_ids = models.execute_kw(db, uid, password, 'res.partner', 'search', [[('email', '=', correo_cliente)]])
+    if cliente_ids:
+        return cliente_ids[0]
+    else:
+        return models.execute_kw(db, uid, password, 'res.partner', 'create', [{'name': correo_cliente, 'email': correo_cliente}])
 
-        # Obtener la información de la sesión utilizando el nombre de la sesión
-        session_info = models.execute_kw(db, uid, password, 'pos.session', 'search_read', 
-                                         [[['config_id', '=', pos_config_id[0]], ['name', '=', pos_session_name]]],
-                                        )
-        if not session_info:
-            print("No se encontró una sesión con ese número de POS para el punto de venta proporcionado.")
-            return
+def crear_orden_pos(id_punto_de_venta, cliente_id, product_ids):
+    pos_session_id = models.execute_kw(db, uid, password, 'pos.session', 'create', [{'config_id': id_punto_de_venta, 'start_at': datetime.now()}])
+    pos_order_id = models.execute_kw(db, uid, password, 'pos.order', 'create', [{
+        'session_id': pos_session_id,
+        'partner_id': cliente_id,
+        'lines': [(0, 0, {'product_id': pid, 'qty': 1}) for pid in product_ids],
+    }])
+    return pos_order_id
 
-        # Imprimir la información del cierre
-        for session in session_info:
-            print(f"POS Number: {session['name']}")
-            print(f"Closing Amount: ${session['cash_register_balance_end_real']}")
-            print(f"Closing Difference: ${session['cash_real_difference']}")
+def registrar_pago_efectivo_orden(order_id, amount_total):
+    payment_method_ids = models.execute_kw(db, uid, password, 'pos.payment.method', 'search', [[('is_cash_count', '=', True)]])
+    payment_id = models.execute_kw(db, uid, password, 'pos.payment', 'create', [{'pos_order_id': order_id, 'amount': amount_total, 'payment_method_id': payment_method_ids[0]}])
+    models.execute_kw(db, uid, password, 'pos.order', 'write', [[order_id], {'state': 'paid'}])
+    models.execute_kw(db, uid, password, 'pos.order', 'write', [[order_id], {'state': 'done'}])
+    return payment_id
 
-    except xmlrpc.client.Fault as error:
-        print(f"Error al obtener la información de cierre: {error.faultCode} - {error.faultString}")
-
-    except Exception as e:
-        print(f"Error general: {e}")
-
-# Ejecutar el script
-if __name__ == '__main__':
-    nombre_punto_venta = input("Ingresa el nombre del punto de venta: ")
-    numero_pos = input("Ingresa el número de POS: ")
-    obtener_info_cierre(nombre_punto_venta, numero_pos)
+# Ejecución principal
+if __name__ == "__main__":
+    nombre_punto_venta = input("Ingrese el nombre del punto de venta: ")
+    id_punto_de_venta = obtener_id_punto_de_venta_por_nombre(nombre_punto_venta)
+    
+    correo_cliente = input('Ingrese el correo del cliente: ')
+    cliente_id = buscar_o_crear_cliente_por_correo(correo_cliente)
+    
+    input_productos = input('Ingrese los IDs de los productos para la orden separados por comas (ejemplo: 1,2,3): ')
+    product_ids = list(map(int, input_productos.split(',')))
+    
+    orden_pos_id = crear_orden_pos(id_punto_de_venta, cliente_id, product_ids)
+    print(f'Orden de punto de venta creada con ID: {orden_pos_id}')
+    
+    total_amount = sum(models.execute_kw(db, uid, password, 'product.product', 'read', [product_ids], {'fields': ['list_price']}))
+    registrar_pago_efectivo_orden(orden_pos_id, total_amount)
+    print(f'Pago registrado para la orden {orden_pos_id}.')

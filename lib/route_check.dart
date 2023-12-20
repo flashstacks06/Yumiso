@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'route_stock.dart'; // Importa RouteStock
 
 class RouteCheck extends StatefulWidget {
   final String userEmail;
@@ -64,8 +65,8 @@ class _RouteCheckState extends State<RouteCheck> {
       'Coin Selector': [5, 9],
       'Motherboard': [7, 11],
       'Joystick': [8, 10],
-      'Claw': [14, 13],
-      'Lights': [16, 15],
+      'Claw': [18, 17],
+      'Lights': [20, 19],
       'Other': [1],  // 'Other' solo toma un valor
       // Agrega aquí las demás opciones si las hay
     };
@@ -110,6 +111,10 @@ class _RouteCheckState extends State<RouteCheck> {
         textColor: Colors.white,
         fontSize: 16.0,
       );
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => RouteStock(userEmail: widget.userEmail,qrId: widget.qrId,),),); 
+      
     } else {
       Fluttertoast.showToast(
         msg: 'Error: No se pudo enviar datos a MQTT porque la conexión no está activa.',
