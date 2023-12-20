@@ -1,3 +1,4 @@
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/testt.exe
 C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/icudtl.dat
 C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/flutter_windows.dll
 C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/AssetManifest.bin

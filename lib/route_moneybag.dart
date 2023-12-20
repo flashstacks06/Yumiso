@@ -44,7 +44,7 @@ class _MoneybagPageState extends State<MoneybagPage> {
     _connectToMQTT();
     super.initState();
     _timeController = TextEditingController(text: _getCurrentTime());   //Actualizo en tiempo real el tiempo
-    _moneybagController = TextEditingController(text: '\$1');       //Seteo el valor que irá en moneybag
+    _moneybagController = TextEditingController(text: '1');       //Seteo el valor que irá en moneybag
 
     _timer = Timer.periodic(const Duration(seconds: 1), _updateTime);
   }
@@ -77,7 +77,6 @@ class _MoneybagPageState extends State<MoneybagPage> {
   }
 
 void enviarDatosMQTT() {
-
   final message = [
     widget.userEmail,
     widget.qrId,
@@ -87,8 +86,15 @@ void enviarDatosMQTT() {
   final builder = MqttClientPayloadBuilder();
   builder.addString(formattedMessage);
   final payload = builder.payload;
+  
+  const textoEspecifico = 'reporte'; // Reemplaza con tu mensaje
+  final builder2 = MqttClientPayloadBuilder(); // Aquí se debe usar builder en lugar de builder2
+  builder2.addString(textoEspecifico); // Aquí se debe usar builder en lugar de builder2
+  final payload2 = builder2.payload; // Aquí se debe usar builder en lugar de builder2
+
   if (mqttClient.connectionStatus!.state == MqttConnectionState.connected) {
     mqttClient.publishMessage('users/route/moneybag', MqttQos.atMostOnce, payload!);
+    mqttClient.publishMessage('yumiso/in/${widget.qrId}', MqttQos.atMostOnce, payload2!);
     Fluttertoast.showToast(
       msg: 'Datos enviados a MQTT',
       toastLength: Toast.LENGTH_SHORT,
@@ -98,7 +104,6 @@ void enviarDatosMQTT() {
       textColor: Colors.white,
       fontSize: 16.0,
     );
-
   } else {
     Fluttertoast.showToast(
       msg: 'Error: No se pudo enviar datos a MQTT porque la conexión no está activa.',

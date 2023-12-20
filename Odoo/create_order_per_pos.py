@@ -1,14 +1,22 @@
 import xmlrpc.client
 from datetime import datetime
 import sys
+import base64
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.backends import default_backend
 
 # Verificar si se proporcionan los argumentos necesarios
 if len(sys.argv) != 4:
     print("Uso: python create_order_per_pos.py <nombre_punto_venta> <correo_cliente> <productos_y_cantidades>")
     sys.exit(1)
 
-nombre_punto_de_venta = sys.argv[1]
-correo_cliente = sys.argv[2]
+key = 'O1GqAK5igRS-BTYgSVLBvg=='
+iv = 'v0kiTpvIvAN1IoFQNyB1IQ=='
+
+numero_punto_de_venta = sys.argv[1]
+nombre_punto_de_venta = f"Maquina {numero_punto_de_venta}"
+correo_cliente_enc = sys.argv[2]
 productos_cantidades_str = sys.argv[3]
 
 # Conexión a Odoo
@@ -29,6 +37,23 @@ def obtener_id_punto_de_venta_por_nombre(nombre_punto_de_venta):
         return pos_config_ids[0]
     else:
         raise Exception(f'No se encontró un punto de venta con el nombre: {nombre_punto_de_venta}')
+
+# Funciones de Desencriptación y Quitar Relleno
+def decrypt_aes(encrypted_data, base64_key, base64_iv):
+    key = base64.urlsafe_b64decode(base64_key)
+    iv = base64.urlsafe_b64decode(base64_iv)
+    encrypted_data = base64.urlsafe_b64decode(encrypted_data)
+
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    decryptor = cipher.decryptor()
+    plaintext = decryptor.update(encrypted_data) + decryptor.finalize()
+
+    return plaintext
+
+def unpad(data):
+    unpadder = padding.PKCS7(128).unpadder()
+    unpadded_data = unpadder.update(data) + unpadder.finalize()
+    return unpadded_data
 
 def buscar_cliente_por_correo(correo_cliente):
     domain = [('email', '=', correo_cliente)]
@@ -128,33 +153,42 @@ try:
     id_punto_de_venta = obtener_id_punto_de_venta_por_nombre(nombre_punto_de_venta)
     print(f'El ID del punto de venta "{nombre_punto_de_venta}" es: {id_punto_de_venta}')
 
-    cliente_id = buscar_cliente_por_correo(correo_cliente)
-    print(f'El ID del cliente con correo "{correo_cliente}" es: {cliente_id}')
-
-    sesion_pos_id = iniciar_sesion_pos(id_punto_de_venta)
-    print(f'Sesión de punto de venta iniciada con ID: {sesion_pos_id}')
-
-    productos_a_agregar = {}
-
+    decrypted_data = ""
     try:
-        productos_cantidades_str = productos_cantidades_str.strip('[]')  # Eliminar corchetes
-        productos_cantidades = productos_cantidades_str.split(',')  # Dividir en elementos
-
-        for pc in productos_cantidades:
-            producto_id, cantidad = pc.split(':')
-            productos_a_agregar[int(producto_id)] = int(cantidad)
-
+        decrypted_data = unpad(decrypt_aes(correo_cliente_enc, key, iv)).decode('utf-8').strip()
     except Exception as e:
-        print(f'Error al procesar los productos y cantidades: {str(e)}')
+        print(f'Error al desencriptar el correo del cliente: {str(e)}')
+    
+    if decrypted_data:
+        print(f'El correo del cliente desencriptado es: {decrypted_data}')
 
-    if productos_a_agregar:
-        orden_pos_id = crear_orden_pos_y_pagar(productos_a_agregar, sesion_pos_id, cliente_id)
+        cliente_id = buscar_cliente_por_correo(decrypted_data)
+        print(f'El ID del cliente con correo "{decrypted_data}" es: {cliente_id}')
 
-        # Cerrar la sesión del punto de venta
-        if orden_pos_id and sesion_pos_id:
-            cerrar_sesion_punto_venta(nombre_punto_de_venta)
-    else:
-        print('La lista de productos está vacía.')
+        sesion_pos_id = iniciar_sesion_pos(id_punto_de_venta)
+        print(f'Sesión de punto de venta iniciada con ID: {sesion_pos_id}')
+
+        productos_a_agregar = {}
+
+        try:
+            productos_cantidades_str = productos_cantidades_str.strip('[]')  # Eliminar corchetes
+            productos_cantidades = productos_cantidades_str.split(',')  # Dividir en elementos
+
+            for pc in productos_cantidades:
+                producto_id, cantidad = pc.split(':')
+                productos_a_agregar[int(producto_id)] = int(cantidad)
+
+        except Exception as e:
+            print(f'Error al procesar los productos y cantidades: {str(e)}')
+
+        if productos_a_agregar:
+            orden_pos_id = crear_orden_pos_y_pagar(productos_a_agregar, sesion_pos_id, cliente_id)
+
+            # Cerrar la sesión del punto de venta
+            if orden_pos_id and sesion_pos_id:
+                cerrar_sesion_punto_venta(nombre_punto_de_venta)
+        else:
+            print('La lista de productos está vacía.')
 
 except Exception as e:
     print(f'Ocurrió un error: {e}')
