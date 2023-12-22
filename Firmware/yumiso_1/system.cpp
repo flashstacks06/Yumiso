@@ -380,19 +380,19 @@ void system_init()
   {
     Cfg_get();  // Load File from spiffs
     loadConfig();       // Load and update behaivor of system
-    wifi_init();
-    mqtt_init();
+    //wifi_init();
+    //mqtt_init();
     //mqtt_check();
-    rtcUpdated = false;
-    ntpConnected = false;
-    init_clock();        // I2C for clock
+    //rtcUpdated = false;
+    //ntpConnected = false;
+    //init_clock();        // I2C for clock
   }
 
-  gps_init();
+  //gps_init();
 
   // WatchDog Timer
-  esp_task_wdt_init(WDT_TIMEOUT, true);  //enable panic so ESP32 restarts
-  esp_task_wdt_add(NULL);
+  //esp_task_wdt_init(WDT_TIMEOUT, true);  //enable panic so ESP32 restarts
+  //esp_task_wdt_add(NULL);
   pinMode(BT_REPORT, INPUT_PULLUP);
 }
 
