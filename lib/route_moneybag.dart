@@ -1,30 +1,50 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
 
-void main() {
-  runApp(MaterialApp(
-    home: MoneybagPage(),
-    debugShowCheckedModeBanner: false,
-  ));
-}
 
 class MoneybagPage extends StatefulWidget {
-  const MoneybagPage({Key? key}) : super(key: key);
+  final String userEmail;
+  final String qrId;
+  final List<String> combinedValues;
+
+  MoneybagPage({
+    Key? key,
+    required this.userEmail,
+    required this.qrId,
+    required this.combinedValues,
+  }) : super(key: key);
 
   @override
   State<MoneybagPage> createState() => _MoneybagPageState();
+
+}
+
+MqttServerClient createRandomMqttClient(String broker, int port) {
+  final Random random = Random();
+  final int randomNumber = random.nextInt(10000);
+  final String clientId = 'mqtt_client_$randomNumber';
+
+  final MqttServerClient mqttClient = MqttServerClient.withPort(broker, clientId, port);
+
+  return mqttClient;
 }
 
 class _MoneybagPageState extends State<MoneybagPage> {
   late TextEditingController _timeController;
   late TextEditingController _moneybagController;
   late Timer _timer;
+  final MqttServerClient mqttClient = createRandomMqttClient('137.184.86.135', 1883);
 
   @override
   void initState() {
+    _connectToMQTT();
     super.initState();
     _timeController = TextEditingController(text: _getCurrentTime());   //Actualizo en tiempo real el tiempo
-    _moneybagController = TextEditingController(text: '\$1,989');       //Seteo el valor que irá en moneybag
+    _moneybagController = TextEditingController(text: '1');       //Seteo el valor que irá en moneybag
 
     _timer = Timer.periodic(const Duration(seconds: 1), _updateTime);
   }
@@ -47,6 +67,55 @@ class _MoneybagPageState extends State<MoneybagPage> {
     _moneybagController.dispose();
     super.dispose();
   }
+
+  void _connectToMQTT() async {
+    try {
+      await mqttClient.connect();
+    } catch (e) {
+      print('Error al conectarse a MQTT: $e');
+    }
+  }
+
+void enviarDatosMQTT() {
+  final message = [
+    widget.userEmail,
+    widget.qrId,
+    widget.combinedValues.toString(),
+  ];
+  final formattedMessage = '{${message.join(', ')}}';
+  final builder = MqttClientPayloadBuilder();
+  builder.addString(formattedMessage);
+  final payload = builder.payload;
+  
+  const textoEspecifico = 'reporte'; // Reemplaza con tu mensaje
+  final builder2 = MqttClientPayloadBuilder(); // Aquí se debe usar builder en lugar de builder2
+  builder2.addString(textoEspecifico); // Aquí se debe usar builder en lugar de builder2
+  final payload2 = builder2.payload; // Aquí se debe usar builder en lugar de builder2
+
+  if (mqttClient.connectionStatus!.state == MqttConnectionState.connected) {
+    mqttClient.publishMessage('users/route/moneybag', MqttQos.atMostOnce, payload!);
+    mqttClient.publishMessage('yumiso/in/${widget.qrId}', MqttQos.atMostOnce, payload2!);
+    Fluttertoast.showToast(
+      msg: 'Datos enviados a MQTT',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+  } else {
+    Fluttertoast.showToast(
+      msg: 'Error: No se pudo enviar datos a MQTT porque la conexión no está activa.',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -126,9 +195,7 @@ class _MoneybagPageState extends State<MoneybagPage> {
                 Container(
                   alignment: Alignment.center,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Acción a realizar cuando se presiona el botón "Finish"
-                    },
+                    onPressed: enviarDatosMQTT,
                     child: const Text('Finish'),
                     style: ElevatedButton.styleFrom(
                       primary: Colors.blue,

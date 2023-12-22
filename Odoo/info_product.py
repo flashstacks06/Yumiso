@@ -1,10 +1,10 @@
 import xmlrpc.client
 
 # Configuración de conexión
-url = 'http://137.184.117.41:8069'
+url = 'http://137.184.86.135:8069/'
 db = 'yumiso'
-username = 'cbernalestrella@gmail.com'
-password = '12345678'
+username = 'info@inventoteca.com'
+password = 'Gr4nj3r04dm1n'
 common_endpoint = f'{url}/xmlrpc/2/common'
 object_endpoint = f'{url}/xmlrpc/2/object'
 

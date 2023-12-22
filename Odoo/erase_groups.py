@@ -1,7 +1,7 @@
 import xmlrpc.client
 
 # Configura la conexión con el servidor Odoo
-url = 'http://137.184.117.41:8069'
+url = 'http://137.184.86.135:8069/'
 db = 'yumiso'
 username = 'info@inventoteca.com'
 password = 'Gr4nj3r04dm1n'  # Contraseña proporcionada por el usuario
@@ -18,7 +18,7 @@ if user_id:
 
     # Ahora, busca el ID del usuario por nombre o ID
     user_proxy = xmlrpc.client.ServerProxy(object_endpoint)
-    user_name_or_id = 'Perenganito Route'  # Reemplaza con el nombre o ID del usuario real
+    user_name_or_id = 'carlos maintenance'  # Reemplaza con el nombre o ID del usuario real
 
     user_info = user_proxy.execute_kw(
         db, user_id, password,

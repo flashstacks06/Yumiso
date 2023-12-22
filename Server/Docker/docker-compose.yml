@@ -1,0 +1,63 @@
+version: '3.8'
+services:
+  odoo:
+    image: odoo:15.0
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+    volumes:
+      - odoo-web-data:/var/lib/odoo
+      - ./addons:/mnt/extra-addons
+    networks:
+      - iot
+    restart: unless-stopped
+
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+    networks:
+      - iot
+    restart: unless-stopped
+
+  nodered:
+    build: 
+      context: .
+      dockerfile: Dockerfile  # Especifica el nombre del Dockerfile
+    ports:
+      - "1880:1880"
+    volumes:
+      - node-red-data:/data
+      - ./python-scripts:/python-scripts
+    networks:
+      - iot
+    restart: unless-stopped
+
+  mosquitto:
+    image: eclipse-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+      - ./mosquitto-config:/mosquitto/config:ro
+    networks:
+      - iot
+    restart: unless-stopped
+
+volumes:
+  odoo-web-data:
+  odoo-db-data:
+  node-red-data:
+  mosquitto-data:
+  mosquitto-log:
+
+networks:
+  iot:
+    driver: bridge

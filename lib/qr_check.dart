@@ -1,66 +1,132 @@
 import 'package:flutter/material.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'dart:convert';
 
-void main() {
-  runApp(const MyApp());
+// Importa las páginas a las que necesitas navegar
+import 'route_check.dart';
+import 'manteinance.dart';
+// Asegúrate de que estas importaciones coincidan con los nombres de archivo y clase en tu proyecto
+
+class QRCodeScannerApp extends StatefulWidget {
+  final String mqttResponse; // Agregado para recibir la respuesta MQTT
+  final String userEmail;    // Correo electrónico del usuario
+
+  QRCodeScannerApp({Key? key, required this.mqttResponse,required this.userEmail}) : super(key: key);
+  
+
+  @override
+  _QRCodeScannerAppState createState() => _QRCodeScannerAppState();
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class _QRCodeScannerAppState extends State<QRCodeScannerApp> {
+  late QRViewController _controller;
+  final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
+  String? qrId = '0'; // Variable para almacenar el número de ID del código QR
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const RedPage(),
-    );
-  }
-}
-
-class RedPage extends StatelessWidget {
-  const RedPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(230, 255, 51, 57),
-      body: SafeArea(
-        child: Column(
-          //mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const SizedBox(height: 16.0), // Espacio añadido para separar del borde superior
-            Container(
-              alignment: Alignment.center,
-              child: const Text(
-                'Qr Scan',
-                style: TextStyle(fontSize: 36, color: Colors.white, fontFamily: 'Cabin'),
-              ),
-            ),  
-            const SizedBox(height: 30.0),
-            Container(
-              width: 100, // Tamaño de la imagen
-              height: 100, // Tamaño de la imagen
-              color: Colors.white, // Color de fondo del contenedor de la imagen
-              child: Center(
-                child: Image.asset(
-                  'img/qrcode.png', // Reemplaza con la ruta de tu imagen
-                  width: 150, // Tamaño de la imagen
-                  height: 150, // Tamaño de la imagen
+      home: Scaffold(
+        body: Column(
+          children: [
+            Expanded(
+              flex: 5,
+              child: QRView(
+                key: _qrKey,
+                onQRViewCreated: _onQRViewCreated,
+                overlay: QrScannerOverlayShape(
+                  borderColor: Colors.red,
+                  borderRadius: 10,
+                  borderLength: 30,
+                  borderWidth: 10,
+                  cutOutSize: 300,
                 ),
+                onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
               ),
             ),
-            const SizedBox(height: 20), // Espacio entre la imagen y el botón
-            ElevatedButton(
-              onPressed: () {
-                // Acción cuando se presiona el botón
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue, // Color del botón
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                margin: EdgeInsets.all(16.0),
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 1,
+                      blurRadius: 2,
+                      offset: Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'Número de Máquina: $qrId',
+                  style: TextStyle(fontSize: 18.0),
+                ),
               ),
-              child: const Text('Next', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
       ),
     );
+  }
+
+  void _onQRViewCreated(QRViewController controller) {
+    setState(() {
+      _controller = controller;
+      _controller.scannedDataStream.listen((scanData) {
+        final code = scanData.code;
+        try {
+          final decodedData = json.decode(code!);
+          if (decodedData is Map<String, dynamic> &&
+              decodedData.containsKey('id') &&
+              decodedData['id'] is String) {
+            qrId = decodedData['id'];
+            print('QR ID: $qrId');
+            setState(() {});
+            _navegarSegunMqttResponse(); // Navega según la respuesta MQTT
+          } else {
+            print('QR code does not have the expected format.');
+          }
+        } catch (e) {
+          print('Error decoding QR code: $e');
+        }
+      });
+    });
+  }
+
+  void _navegarSegunMqttResponse() {
+    if (qrId != null) {
+      switch (widget.mqttResponse) {
+        case 'Route':
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => RouteCheck(userEmail: widget.userEmail,qrId: qrId!,)),
+          );
+          break;
+        case 'Maintenance':
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => Maintenance1(userEmail: widget.userEmail,qrId: qrId!,)),
+          );
+          break;
+        // No se necesita manejar 'Arcade' aquí ya que se maneja en MyHomePage
+      }
+    }
+  }
+
+  void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
+    if (!p) {
+      // Handle permission denied
+    }
   }
 }

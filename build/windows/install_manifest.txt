@@ -1,3 +1,4 @@
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/testt.exe
 C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/icudtl.dat
 C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/flutter_windows.dll
 C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/AssetManifest.bin
@@ -20,4 +21,6 @@ C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data
 C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/kernel_blob.bin
 C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/NOTICES
 C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/NOTICES.Z
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/packages/fluttertoast/assets/toastify.css
+C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/packages/fluttertoast/assets/toastify.js
 C:/Users/carl2/OneDrive/carlos/Escritorio/Yumiso/build/windows/runner/Debug/data/flutter_assets/shaders/ink_sparkle.frag
