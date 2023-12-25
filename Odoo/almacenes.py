@@ -16,7 +16,8 @@ models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(url))
 # Obtener los productos disponibles en el punto de venta
 product_ids = models.execute_kw(db, uid, password,
     'product.product', 'search',
-    [[['available_in_pos', '=', True]]])
+    [[['available_in_pos', '=', True], 
+      ['name', 'not in', ['Juegos', 'Premios']]]])
 
 # Obtener la información de los productos
 products = models.execute_kw(db, uid, password,
