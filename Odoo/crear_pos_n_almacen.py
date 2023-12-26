@@ -7,7 +7,7 @@ username = 'info@inventoteca.com'
 password = 'Gr4nj3r04dm1n'
 
 # Nombre para la nueva ubicación padre y almacén
-nombre_ubicacion_padre = "Maquina 70"
+nombre_ubicacion_padre = "Maquina 71"
 
 # Iniciar sesión en Odoo
 common = xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(url))
