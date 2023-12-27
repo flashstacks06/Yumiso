@@ -133,16 +133,19 @@ void wifi_init()
 
   if ((obj["enable_wifi"].as<bool>() == true && (WiFi.status() != WL_CONNECTED)) || (obj["enable_wifi"].isNull()))
   {
+    Serial.println("{\"wifi\":{\"enable\":true}}");
     WiFi.mode(WIFI_STA);
 
     const char * auxssid = obj["ssid"].as<const char *>();
     const char * auxpass = obj["pass"].as<const char *>();
 
+    Serial.print("{\"wifi\":{\"ssid\":\"");
+    Serial.print(auxssid);
+
     // Star WiFi connection
     WiFi.begin(auxssid, auxpass);
 
-    Serial.print("{\"wifi\":{\"ssid\":\"");
-    Serial.print(auxssid);
+    
     Serial.println("\"}}");
     Serial.println("{\"wifi\":\"init\"}");
 
@@ -203,7 +206,8 @@ bool wifi_check()
       // ------------------------ firebase connection
       if (updated == false)
       {
-        oled_display_text("VERSION \n NUEVA");
+        Serial.println("{\"load_firmware\":true}");
+        //oled_display_text("VERSION \n NUEVA");
         connectFirebase();
       }
 

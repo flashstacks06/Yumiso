@@ -382,7 +382,7 @@ void system_init()
     loadConfig();       // Load and update behaivor of system
     wifi_init();
     mqtt_init();
-    //mqtt_check();
+    mqtt_check();
     rtcUpdated = false;
     ntpConnected = false;
     init_clock();        // I2C for clock
@@ -395,73 +395,6 @@ void system_init()
   esp_task_wdt_add(NULL);
   pinMode(BT_REPORT, INPUT_PULLUP);
 }
-
-// ----------------------------------------------------------------------------------------------- factory_reset3 change
-/*void IRAM_ATTR factory_reset3()
-  {
-  if ((factory_press == false) && (digitalRead(FACTORY_BT) == PRESS))
-  {
-    Serial.println("{\"R_bt\":\"push\"}");
-    factory_press = true;
-    factory_time = millis();
-    return;
-
-  }
-  else if((digitalRead(FACTORY_BT) == !PRESS))
-  {
-    prev_factory_time = millis();
-    reset_time = true;
-    //Serial.println("{\"reset_button\":\"released\"}");
-    return;
-  }
-
-  }*/
-
-
-// --------------------------------------------------------------------------------------------- check_reset
-/*void check_reset()
-  {
-  // Force Factory to input
-  pinMode(FACTORY_BT, INPUT);
-
-  if (reset_time)
-  {
-    Serial.print("{\"reset_time\":"); Serial.print(prev_factory_time - factory_time); Serial.println("}");
-    if ((prev_factory_time - factory_time) > 5000)
-    {
-      reset_config();
-    }
-    else
-      Serial.println("{\"reset\":\"fail\"}");
-    factory_press = false;
-    reset_time = false;
-  }
-
-  // ------------------------------------------------------reboot time es en horas
-  int reboot_time = obj["reboot_time"].as<unsigned int>();
-  if (reboot_time < 1)
-    reboot_time = 24;
-  // Si han pasado más de 24 horas del reset anterior o el tiempo en reboot time
-  if (millis() - tiempoInicio >=  (reboot_time * 60 * 60 * 1000))
-    //if (millis() - tiempoInicio >=  (reboot_time  * 1000))
-  { // Comparar el tiempo actual con el tiempo de inicio
-    Serial.print("{\"reboot_time\":"); Serial.print(obj["reboot_time"].as<unsigned int>()); Serial.println("}");
-    tiempoInicio = millis();  // Actualizar el tiempo de inicio
-    ESP.restart();  // Reiniciar el ESP32
-  }
-
-  //------------------------------------------------------ restart from command
-  if (obj["restart"].as<bool>())
-  {
-    Serial.println("{\"reboot\":true}");
-    SendData();
-    obj["restart"] = false;
-    Serial.println(saveJSonToAFile(&obj, filename) ? "{\"reboot_save\":true}" : "{\"reboot_save\":false}");
-    //delay(2000);
-    ESP.restart();
-  }
-
-  }*/
 
 //----------------------------------------------------------------------------------------------------------- reset_config
 void reset_config()
@@ -533,6 +466,8 @@ void loadConfig()
   // ----------- Load Counters
   Serial.println("{\"loadConfig\":true}");
 
+  rtc_enable = obj["enable_rtc"].as<bool>();
+  ntp_enable = obj["enable_ntp"].as<bool>();
 
   updated = obj["updated"].as<bool>();
 

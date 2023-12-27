@@ -38,7 +38,7 @@ void fcsDownloadCallback(FCS_DownloadStatusInfo info)
     Serial.printf("Done %d%s, Time %d ms\n", (int)info.progress, "%", info.elapsedTime);
     char bufferf[100];
     sprintf(bufferf, "Done %d%s", (int)info.progress, "%");
-    oled_display_text(bufferf);
+    //oled_display_text(bufferf);
   }
   else if (info.status == fb_esp_fcs_download_status_complete)
   {
@@ -265,7 +265,9 @@ void prepareData()
 void connectFirebase()
 {
   // Firebase
+  Serial.println("{\"starting_firebase\":true}");
   esp_task_wdt_reset();
+  //Serial.println("{\"starting_firebase\":true}");
   if (!Firebase.ready()) // Add more filters
   {
 
@@ -329,12 +331,13 @@ void connectFirebase()
   {
     updated = true;
     String storage_id = obj["storage_id"].as<String>();
+    String path = "firmware/"+ obj["firmware"].as<String>();
     //SendData();
     Serial.println("{\"new_firmware\":true}");
     //delay(2000);
 
     // In ESP8266, this function will allocate 16k+ memory for internal SSL client.
-    if (!Firebase.Storage.downloadOTA(&fbdo, storage_id/* Firebase Storage bucket id */, "master_gas_module.ino.esp32da.bin" /* path of firmware file stored in the bucket */, fcsDownloadCallback /* callback function */))
+    if (!Firebase.Storage.downloadOTA(&fbdo, storage_id/* Firebase Storage bucket id */, path /* path of firmware file stored in the bucket */, fcsDownloadCallback /* callback function */))
       Serial.println(fbdo.errorReason());
   }
 }
