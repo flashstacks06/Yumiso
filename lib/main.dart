@@ -45,6 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isLoading = false;
   String? errorMessage;
   String? userEmail;
+  bool _obscureText = true;
 
   void login() async {
     setState(() {
@@ -69,15 +70,16 @@ class _MyHomePageState extends State<MyHomePage> {
     await enviarDatosMQTT(encryptedUsername, encryptedPassword);
   }
 
-MqttServerClient createRandomMqttClient(String broker, int port) {
-  final Random random = Random();
-  final int randomNumber = random.nextInt(10000); // Genera un número aleatorio
-  final String clientId = 'mqtt_client_$randomNumber'; // Nombre de cliente único
+  MqttServerClient createRandomMqttClient(String broker, int port) {
+    final Random random = Random();
+    final int randomNumber = random.nextInt(10000); // Genera un número aleatorio
+    final String clientId = 'mqtt_client_$randomNumber'; // Nombre de cliente único
 
-  final MqttServerClient mqttClient = MqttServerClient.withPort(broker, clientId, port);
+    final MqttServerClient mqttClient = MqttServerClient.withPort(
+        broker, clientId, port);
 
-  return mqttClient;
-}
+    return mqttClient;
+  }
 
   String encryptData(String data) {
     final key = encrypt.Key.fromBase64('O1GqAK5igRS-BTYgSVLBvg==');
@@ -89,7 +91,8 @@ MqttServerClient createRandomMqttClient(String broker, int port) {
   }
 
   Future<void> enviarDatosMQTT(String username, String password) async {
-    final MqttServerClient client = createRandomMqttClient('137.184.86.135', 1883);
+    final MqttServerClient client =
+        createRandomMqttClient('137.184.86.135', 1883);
 
     try {
       await client.connect();
@@ -117,11 +120,12 @@ MqttServerClient createRandomMqttClient(String broker, int port) {
       client.subscribe(respuestaTopico, MqttQos.atLeastOnce);
 
       client.updates!.listen((List<MqttReceivedMessage<MqttMessage>> c) {
-        final MqttPublishMessage message = c[0].payload as MqttPublishMessage;
+        final MqttPublishMessage message =
+            c[0].payload as MqttPublishMessage;
         final payload =
             MqttPublishPayload.bytesToStringAsString(message.payload.message);
 
-        _navegarSegunRespuesta(payload,username);
+        _navegarSegunRespuesta(payload, username);
       });
     } else {
       print('Error al conectarse al broker MQTT');
@@ -131,7 +135,7 @@ MqttServerClient createRandomMqttClient(String broker, int port) {
     }
   }
 
-  void _navegarSegunRespuesta(String respuesta,String username) {
+  void _navegarSegunRespuesta(String respuesta, String username) {
     setState(() {
       _isLoading = false;
     });
@@ -142,7 +146,8 @@ MqttServerClient createRandomMqttClient(String broker, int port) {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => QRCodeScannerApp(mqttResponse: respuesta,userEmail:username),
+            builder: (context) =>
+                QRCodeScannerApp(mqttResponse: respuesta, userEmail: username),
           ),
         );
         break;
@@ -196,12 +201,24 @@ MqttServerClient createRandomMqttClient(String broker, int port) {
                 const SizedBox(height: 10),
                 TextField(
                   controller: passwordController,
-                  obscureText: true,
+                  obscureText: _obscureText,
                   decoration: InputDecoration(
                     labelText: 'Password',
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _obscureText = !_obscureText;
+                        });
+                      },
+                      icon: Icon(
+                        _obscureText
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),

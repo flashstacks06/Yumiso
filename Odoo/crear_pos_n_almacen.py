@@ -7,7 +7,7 @@ username = 'info@inventoteca.com'
 password = 'Gr4nj3r04dm1n'
 
 # Nombre para la nueva ubicación padre y almacén
-nombre_ubicacion_padre = "Maquina 71"
+nombre_ubicacion_padre = "Maquina 72"
 
 # Iniciar sesión en Odoo
 common = xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(url))
@@ -42,6 +42,16 @@ pos_config_id = models.execute_kw(db, uid, password, 'pos.config', 'create', [{
     'picking_type_id': picking_type_id if picking_type_id else False,
     'payment_method_ids': [(6, 0, payment_method_ids)],
 }])
+
+consumable_data = {
+    'name': nombre_ubicacion_padre,  # Nombre específico del producto
+    'type': 'consu',  # Tipo de producto consumible
+    # Otros campos relevantes, como precio, descripción, categoría, etc.
+}
+
+# Llamar al método 'create' para crear el producto consumible
+product_id = models.execute_kw(db, uid, password, 'product.template', 'create', [consumable_data])
+
 
 print(f"Ubicación padre '{nombre_ubicacion_padre}', ubicación 'Stock', almacén y punto de venta creados con éxito.")
 print(f"ID del Almacén: {warehouse_id}, ID del Punto de Venta: {pos_config_id}")

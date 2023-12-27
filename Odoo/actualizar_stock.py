@@ -13,26 +13,49 @@ uid = common.authenticate(db, username, password, {})
 # Obtener los modelos
 models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(url))
 
-# ID del producto y del almacén
+# Nombre del almacén
+warehouse_name = 'San Francisco'  # Reemplaza con el nombre real del almacén
+
+# ID del producto
 product_id = 14  # Reemplaza por el ID real del producto
-location_id = 18  # Reemplaza por el ID real de la ubicación del almacén
 
 # Nueva cantidad a mano
-new_quantity = 1000.0
+new_quantity = 11500.0
 
-# Buscar stock.quant para el producto y la ubicación especificados
-quant_ids = models.execute_kw(db, uid, password,
-    'stock.quant', 'search',
-    [[['product_id', '=', product_id], ['location_id', '=', location_id]]])
+# Buscar el ID del almacén por nombre
+warehouse_ids = models.execute_kw(db, uid, password,
+    'stock.warehouse', 'search',
+    [[['name', '=', warehouse_name]]], {'limit': 1})
 
-# Si existe un quant, actualízalo; si no, créalo.
-if quant_ids:
-    models.execute_kw(db, uid, password,
-                      'stock.quant', 'write',
-                      [quant_ids, {'inventory_quantity': new_quantity}])
+if not warehouse_ids:
+    print(f"El almacén '{warehouse_name}' no fue encontrado.")
 else:
-    models.execute_kw(db, uid, password,
-                      'stock.quant', 'create',
-                      [{'product_id': product_id, 'location_id': location_id, 'inventory_quantity': new_quantity}])
+    warehouse_id = warehouse_ids[0]
+    # Obtener la ubicación del stock principal para el almacén
+    warehouse_data = models.execute_kw(db, uid, password,
+        'stock.warehouse', 'read',
+        [warehouse_ids], {'fields': ['lot_stock_id']})
+    location_id = warehouse_data[0]['lot_stock_id'][0] if warehouse_data and 'lot_stock_id' in warehouse_data[0] else False
+    
+    if not location_id:
+        print(f"No se encontró una ubicación interna dentro del almacén '{warehouse_name}'.")
+    else:
+        # Buscar stock.quant para el producto y la ubicación especificados
+        quant_ids = models.execute_kw(db, uid, password,
+            'stock.quant', 'search',
+            [[['product_id', '=', product_id], ['location_id', '=', location_id]]])
 
-print("Cantidad a mano actualizada para el producto en el almacén especificado.")
+        # Si existe un quant, actualízalo; si no, créalo.
+        if quant_ids:
+            models.execute_kw(db, uid, password,
+                              'stock.quant', 'write',
+                              [quant_ids, {'quantity': new_quantity, 'inventory_quantity': new_quantity}])
+            print(f"Cantidad a mano actualizada para el producto ID {product_id} en la ubicación del almacén '{warehouse_name}' con ID {location_id}.")
+        else:
+            models.execute_kw(db, uid, password,
+                              'stock.quant', 'create',
+                              [{'product_id': product_id, 'location_id': location_id, 'quantity': new_quantity, 'inventory_quantity': new_quantity}])
+            models.execute_kw(db, uid, password,
+                              'stock.quant', 'write',
+                              [quant_ids, {'inventory_quantity': new_quantity}])
+            print(f"Cantidad a mano establecida para el producto ID {product_id} en la nueva ubicación del almacén con ID {location_id}.")
