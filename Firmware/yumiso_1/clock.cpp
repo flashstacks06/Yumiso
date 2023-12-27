@@ -5,6 +5,7 @@ RTC_DS3231 rtc;
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 DateTime now;
 DateTime last_ac;
+struct tm timeinfo;
 
 int dias;
 int mes;
@@ -22,7 +23,8 @@ int32_t   daylightOffset_sec;
 bool ntpConnected = false;
 bool rtcUpdated = false;
 bool rtc_ready = false;
-
+bool rtc_enable = false;
+bool ntp_enable = false;
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, ntpServer, gmtOffset_sec, daylightOffset_sec);
@@ -30,180 +32,42 @@ NTPClient timeClient(ntpUDP, ntpServer, gmtOffset_sec, daylightOffset_sec);
 // ---------------------------------- init_clock
 void init_clock()
 {
-  //  Wire1.setSDA(2);
-  //Wire1.setSCL(3);
-  //Wire.begin();
-  delay(100);
-  if (!rtc.begin(&Wire))
+  if (rtc_enable)
   {
-    Serial.println("{\"rtc_init\":false}");
-    rtc_ready = false;
-    delay(10);
-  }
-  else
-  {
-    Serial.println("{\"rtc_init\":true}");
-    delay(10);
-    gmtOffset_sec = obj["gmtOff"].as<int32_t>();
-    daylightOffset_sec = obj["dayOff"].as<int32_t>();
-    rtc_ready = true;
-
-    // For New devices
-    //if (! rtc.isrunning())
-    if (rtc.lostPower())
+    delay(100);
+    if (!rtc.begin(&Wire))
     {
-
-      // When time needs to be set on a new device, or after a power loss, the
-      // following line sets the RTC to the date & time this sketch was compiled
-
-      // Uncomment for new
-      //Serial.println("RTC is NOT running, let's set factory the time!");
-      rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-
-      Serial.println("RTC is NOT running, rebooting ...");
-      delay(1000);
-      //ESP.restart();  // Reiniciar el ESP32
-
+      Serial.println("{\"rtc_init\":false}");
+      rtc_ready = false;
+      delay(10);
     }
-
-
-    now = rtc.now();
-    status_doc["time"] = now.unixtime();
-    doc["time"] = now.unixtime();
-
-    // Tiempo Unix para el 1 de enero de 2050 a las 00:00:00 UTC
-    const uint32_t unixTime2050 = 2524608000;
-    if (now.unixtime() >= unixTime2050)
+    else
     {
-      Serial.println("RTC ERROR Reboot...");
-      delay(1000);
-      //ESP.restart();  // Reiniciar el ESP32
-    }
+      Serial.println("{\"rtc_init\":true}");
+      delay(10);
+      gmtOffset_sec = obj["gmtOff"].as<int32_t>();
+      daylightOffset_sec = obj["dayOff"].as<int32_t>();
+      rtc_ready = true;
 
-    Serial.print("{\"time\":\"");
-    Serial.print(now.year(), DEC);
-    Serial.print('/');
-    Serial.print(now.month(), DEC);
-    Serial.print('/');
-    Serial.print(now.day(), DEC);
-    Serial.print(' ');
-    Serial.print(now.hour(), DEC);
-    Serial.print(':');
-    Serial.print(now.minute(), DEC);
-    Serial.print(':');
-    Serial.print(now.second(), DEC);
-    Serial.println("\"}");
-
-    gmtOffset_sec = obj["gmtOff"].as<int32_t>();
-    daylightOffset_sec = obj["dayOff"].as<int32_t>();
-
-    Serial.print("{\"gmtOff\":");
-    Serial.print(gmtOffset_sec);
-    Serial.println("}");
-
-    Serial.print("{\"dayOff\":");
-    Serial.print(daylightOffset_sec);
-    Serial.println("}");
-
-  }
-}
-
-
-// -------------------------------- update_clock
-void update_clock()
-{
-  if (rtc_ready == true)
-  {
-    // Sincroniza el tiempo del cliente NTP
-    if (rtcUpdated == false)
-    {
-      // New connection to NTP server
-      // ---------------------------- Time NTP
-      WiFiUDP ntpUDP;
-      NTPClient timeClient(ntpUDP, "pool.ntp.org");  // Puedes cambiar "pool.ntp.org" por cualquier servidor NTP de tu elección.
-
-      if (ntpConnected == false)
+      // For New devices
+      //if (! rtc.isrunning())
+      if (rtc.lostPower())
       {
-        //Serial.println("{\"ntp\":\"connecting...\"}");
-        //timeClient.begin();
-        timeClient.end();
-        gmtOffset_sec = obj["gmtOff"].as<int32_t>();               // Central Mexico (-5 UTC, -18000): Pacifico (-7 UTC, -25200) :  Noroeste (-8 UTC, -28800)
-        daylightOffset_sec = obj["dayOff"].as<int32_t>();               // Horario de verano, disabled
-        timeClient = NTPClient(ntpUDP, ntpServer, gmtOffset_sec, daylightOffset_sec);
-        timeClient.begin();
-        Serial.println("{\"ntp\":\"connected\"}");
-        ntpConnected = true;
+
+        // When time needs to be set on a new device, or after a power loss, the
+        // following line sets the RTC to the date & time this sketch was compiled
+
+        // Uncomment for new
+        //Serial.println("RTC is NOT running, let's set factory the time!");
+        rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+
+        Serial.println("RTC is NOT running, rebooting ...");
+        //delay(1000);
+        //ESP.restart();  // Reiniciar el ESP32
+
       }
 
-      // Update time only when connected
-      if (timeClient.update())
-      {
-        Serial.print("{\"time_ntp\":\"");
-        Serial.print(timeClient.getFormattedTime());
-        Serial.println("\"}");
 
-        //Serial.println(timeClient.getEpochTime(), DEC);
-
-        if (timeClient.getSeconds() != 0)
-        {
-          Serial.println("{\"rtc\":\"updated from NTP\"}");
-          Serial.println(timeClient.getFormattedTime());
-          // Establece el tiempo del DS1307 utilizando el tiempo del cliente NTP
-          rtc.adjust(DateTime(timeClient.getEpochTime()));
-          rtcUpdated = true;
-        }
-        else
-        {
-          Serial.println("{\"ntp\":\"fail\"}");
-          rtcUpdated = false;
-        }
-      }
-      else
-        Serial.println("{\"rtc\":\"NOT updated, Battery mode\"}");
-
-      //if (rtc.isrunning())
-      {
-        now = rtc.now();
-        status_doc["time"] = now.unixtime();
-        doc["time"] = now.unixtime();
-
-        Serial.print("{\"time_rtc\":\"");
-        Serial.print(now.year(), DEC);
-        Serial.print('/');
-        Serial.print(now.month(), DEC);
-        Serial.print('/');
-        Serial.print(now.day(), DEC);
-        Serial.print(' ');
-        Serial.print(now.hour(), DEC);
-        Serial.print(':');
-        Serial.print(now.minute(), DEC);
-        Serial.print(':');
-        Serial.print(now.second(), DEC);
-        Serial.println("\"}");
-      }
-      //else
-      //{
-      //Serial.print("{\"time_rtc\":\"fail\"");
-      //delay(1000);
-      //ESP.restart();  // Reiniciar el ESP32
-      //}
-    }
-  }
-  else
-  {
-    init_clock();
-  }
-
-}
-
-// -------------------------------- read_clock
-void read_clock()
-{
-  if (rtc_ready)
-  {
-
-    //if (rtc.isrunning())
-    {
       now = rtc.now();
       status_doc["time"] = now.unixtime();
       doc["time"] = now.unixtime();
@@ -216,15 +80,6 @@ void read_clock()
         delay(1000);
         //ESP.restart();  // Reiniciar el ESP32
       }
-
-      //dias = int(round(round(now.unixtime() - last_ac.unixtime()) / 86400L));
-      //dias = (now.unixtime() - last_ac.unixtime()) / 86400;
-      mes = now.month();
-      anio = now.year();
-      dia_hoy = now.day();
-      hora = now.hour();
-      minuto = now.minute();
-      segundo = now.second();
 
       Serial.print("{\"time\":\"");
       Serial.print(now.year(), DEC);
@@ -240,28 +95,207 @@ void read_clock()
       Serial.print(now.second(), DEC);
       Serial.println("\"}");
 
+      gmtOffset_sec = obj["gmtOff"].as<int32_t>();
+      daylightOffset_sec = obj["dayOff"].as<int32_t>();
 
-      lcd.setCursor(0, 2); //
-      lcd.print(dia_hoy);
-      lcd.print("/");
-      lcd.print(mes);
-      lcd.print("/");
-      lcd.print(anio);
-      lcd.print("  ");
-      lcd.print(hora);
-      lcd.print(":");
-      lcd.print(minuto);
-      lcd.print(":");
-      lcd.print(segundo);
+      Serial.print("{\"gmtOff\":");
+      Serial.print(gmtOffset_sec);
+      Serial.println("}");
+
+      Serial.print("{\"dayOff\":");
+      Serial.print(daylightOffset_sec);
+      Serial.println("}");
 
     }
   }
-  else
+  else if (ntp_enable)
   {
-    init_clock();
+    //init and get the time
+    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+    printLocalTime();
+  }
+
+}
+
+
+// -------------------------------- update_clock
+void update_clock()
+{
+  if (rtc_enable)
+  {
+    if (rtc_ready == true)
+    {
+      // Sincroniza el tiempo del cliente NTP
+      if (rtcUpdated == false)
+      {
+        // New connection to NTP server
+        // ---------------------------- Time NTP
+        WiFiUDP ntpUDP;
+        NTPClient timeClient(ntpUDP, "pool.ntp.org");  // Puedes cambiar "pool.ntp.org" por cualquier servidor NTP de tu elección.
+
+        if (ntpConnected == false)
+        {
+          //Serial.println("{\"ntp\":\"connecting...\"}");
+          //timeClient.begin();
+          timeClient.end();
+          gmtOffset_sec = obj["gmtOff"].as<int32_t>();               // Central Mexico (-5 UTC, -18000): Pacifico (-7 UTC, -25200) :  Noroeste (-8 UTC, -28800)
+          daylightOffset_sec = obj["dayOff"].as<int32_t>();               // Horario de verano, disabled
+          timeClient = NTPClient(ntpUDP, ntpServer, gmtOffset_sec, daylightOffset_sec);
+          timeClient.begin();
+          Serial.println("{\"ntp\":\"connected\"}");
+          ntpConnected = true;
+        }
+
+        // Update time only when connected
+        if (timeClient.update())
+        {
+          Serial.print("{\"time_ntp\":\"");
+          Serial.print(timeClient.getFormattedTime());
+          Serial.println("\"}");
+
+          //Serial.println(timeClient.getEpochTime(), DEC);
+
+          if (timeClient.getSeconds() != 0)
+          {
+            Serial.println("{\"rtc\":\"updated from NTP\"}");
+            Serial.println(timeClient.getFormattedTime());
+            // Establece el tiempo del DS1307 utilizando el tiempo del cliente NTP
+            rtc.adjust(DateTime(timeClient.getEpochTime()));
+            rtcUpdated = true;
+          }
+          else
+          {
+            Serial.println("{\"ntp\":\"fail\"}");
+            rtcUpdated = false;
+          }
+        }
+        else
+          Serial.println("{\"rtc\":\"NOT updated, Battery mode\"}");
+
+        //if (rtc.isrunning())
+        {
+          now = rtc.now();
+          status_doc["time"] = now.unixtime();
+          doc["time"] = now.unixtime();
+
+          Serial.print("{\"time_rtc\":\"");
+          Serial.print(now.year(), DEC);
+          Serial.print('/');
+          Serial.print(now.month(), DEC);
+          Serial.print('/');
+          Serial.print(now.day(), DEC);
+          Serial.print(' ');
+          Serial.print(now.hour(), DEC);
+          Serial.print(':');
+          Serial.print(now.minute(), DEC);
+          Serial.print(':');
+          Serial.print(now.second(), DEC);
+          Serial.println("\"}");
+        }
+        //else
+        //{
+        //Serial.print("{\"time_rtc\":\"fail\"");
+        //delay(1000);
+        //ESP.restart();  // Reiniciar el ESP32
+        //}
+      }
+    }
+    else
+    {
+      init_clock();
+    }
+  }
+  else if (ntp_enable)
+  {
+    if (rtcUpdated == false)
+    {
+      Serial.println("{\"ntp\":\"updated from Server\"}");
+      gmtOffset_sec = obj["gmtOff"].as<int32_t>();               // Central Mexico (-5 UTC, -18000): Pacifico (-7 UTC, -25200) :  Noroeste (-8 UTC, -28800)
+      daylightOffset_sec = obj["dayOff"].as<int32_t>();
+      configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+      rtcUpdated = true;
+    }
+    printLocalTime();
+  }
+
+
+}
+
+// -------------------------------- read_clock
+void read_clock()
+{
+  if (rtc_enable)
+  {
+    if (rtc_ready)
+    {
+
+      //if (rtc.isrunning())
+      {
+        now = rtc.now();
+        status_doc["time"] = now.unixtime();
+        doc["time"] = now.unixtime();
+
+        // Tiempo Unix para el 1 de enero de 2050 a las 00:00:00 UTC
+        const uint32_t unixTime2050 = 2524608000;
+        if (now.unixtime() >= unixTime2050)
+        {
+          Serial.println("RTC ERROR Reboot...");
+          delay(1000);
+          //ESP.restart();  // Reiniciar el ESP32
+        }
+
+        //dias = int(round(round(now.unixtime() - last_ac.unixtime()) / 86400L));
+        //dias = (now.unixtime() - last_ac.unixtime()) / 86400;
+        mes = now.month();
+        anio = now.year();
+        dia_hoy = now.day();
+        hora = now.hour();
+        minuto = now.minute();
+        segundo = now.second();
+
+        Serial.print("{\"time\":\"");
+        Serial.print(now.year(), DEC);
+        Serial.print('/');
+        Serial.print(now.month(), DEC);
+        Serial.print('/');
+        Serial.print(now.day(), DEC);
+        Serial.print(' ');
+        Serial.print(now.hour(), DEC);
+        Serial.print(':');
+        Serial.print(now.minute(), DEC);
+        Serial.print(':');
+        Serial.print(now.second(), DEC);
+        Serial.println("\"}");
+
+
+        lcd.setCursor(0, 2); //
+        lcd.print(dia_hoy);
+        lcd.print("/");
+        lcd.print(mes);
+        lcd.print("/");
+        lcd.print(anio);
+        lcd.print("  ");
+        lcd.print(hora);
+        lcd.print(":");
+        lcd.print(minuto);
+        lcd.print(":");
+        lcd.print(segundo);
+
+      }
+    }
+    else
+    {
+      init_clock();
+    }
+  }
+  else if (ntp_enable)
+  {
+    printLocalTime();
   }
 }
 
+
+// --------------------------------------------- DateTimeToString
 String DateTimeToString(const DateTime& now) {
   char buffer[20];
   snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d %02d:%02d:%02d",
@@ -272,13 +306,48 @@ String DateTimeToString(const DateTime& now) {
 
 
 //
-//// Local time
-//void printLocalTime()
-//{
-//  struct tm timeinfo;
-//  if (!getLocalTime(&timeinfo)) {
-//    Serial.println("Failed to obtain time");
-//    return;
-//  }
-//  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");   // Comment for ESP8266
-//}
+//// --------------------------------------------- printLocalTime
+void printLocalTime()
+{
+  if (!getLocalTime(&timeinfo))
+  {
+    Serial.println("Failed to obtain time");
+    return;
+  }
+
+  //Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");   // Comment for ESP8266
+  mes = timeinfo.tm_mon + 1;  // Adjust for 0-based indexing
+  anio = timeinfo.tm_year + 1900; // Adjust for years since 1900
+  dia_hoy = timeinfo.tm_mday;
+  hora = timeinfo.tm_hour;
+  minuto = timeinfo.tm_min;
+  segundo = timeinfo.tm_sec;
+
+  Serial.print("{\"time\":\"");
+  Serial.print(anio, DEC);
+  Serial.print('/');
+  Serial.print(mes, DEC);
+  Serial.print('/');
+  Serial.print(dia_hoy, DEC);
+  Serial.print(' ');
+  Serial.print(hora, DEC);
+  Serial.print(':');
+  Serial.print(minuto, DEC);
+  Serial.print(':');
+  Serial.print(segundo, DEC);
+  Serial.println("\"}");
+
+
+  lcd.setCursor(0, 2); //
+  lcd.print(dia_hoy);
+  lcd.print("/");
+  lcd.print(mes);
+  lcd.print("/");
+  lcd.print(anio);
+  lcd.print("  ");
+  lcd.print(hora);
+  lcd.print(":");
+  lcd.print(minuto);
+  lcd.print(":");
+  lcd.print(segundo);
+}

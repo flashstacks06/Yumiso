@@ -57,11 +57,11 @@ void save_gps_log()
 // ---------------------------------------------------- gps_init
 void gps_init()
 {
-  
-  uint8_t rxPin = 34;
-  uint8_t txPin = 33;
-  //Serial2.begin(9600, SERIAL_8N1);  // Inicializa UART1 con 9600 baudios
-  Serial2.begin(9600, SERIAL_8N1, rxPin, txPin);
+
+  //uint8_t rxPin = 34;
+  //uint8_t txPin = 33;
+  Serial2.begin(9600, SERIAL_8N1);  // Inicializa UART1 con 9600 baudios
+  //Serial2.begin(9600, SERIAL_8N1, rxPin, txPin);
   Serial.println(F("{\"gps_init\":true}")); //Serial.println(TinyGPSPlus::libraryVersion());
 }
 
@@ -144,7 +144,7 @@ void gps_update()
   serializeJson(obj["lat"], Serial);
   Serial.print(",\"lon\":");
   serializeJson(obj["lon"], Serial);
-  Serial.println("}");
+  Serial.println("}");  
 
 
   //status_doc["gps"].clear();
@@ -162,7 +162,7 @@ void gps_update()
 static void smartDelay(unsigned long ms)
 {
   unsigned long start = millis();
-  //byte gps_char;
+  byte gps_char;
   //int co;
   //Serial.println("Get GPS");
   //do
@@ -170,6 +170,7 @@ static void smartDelay(unsigned long ms)
   while ((Serial2.available() && (millis() - start < ms)))
   {
     //gps_char = Serial2.read();
+    //gps.encode(gps_char);
     gps.encode(Serial2.read());
     //Serial.write(gps_char);
     //co++;

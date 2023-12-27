@@ -10,6 +10,7 @@ extern char daysOfTheWeek[7][12];
 extern DateTime now;
 extern DateTime last_ac;
 extern RTC_DS3231 rtc;
+extern struct tm timeinfo;
 
 extern int dias;
 extern int mes;
@@ -25,6 +26,8 @@ extern int32_t   daylightOffset_sec;
 extern bool ntpConnected;
 extern bool rtcUpdated;
 extern bool rtc_ready;
+extern bool rtc_enable;
+extern bool ntp_enable;
 
 
 extern WiFiUDP ntpUDP;
@@ -34,5 +37,6 @@ void update_clock();
 void read_clock();
 void init_clock();
 String DateTimeToString(const DateTime& now);
+void printLocalTime();
 
 #endif

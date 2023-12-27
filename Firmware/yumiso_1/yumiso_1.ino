@@ -27,11 +27,8 @@ void loop()
   {
     mainRefresh = millis();
 
-    read_clock();
     gps_update();
-
-
-
+    read_clock();
 
     // -------------------------------------------solo si no esta en proceso de surtido
 
