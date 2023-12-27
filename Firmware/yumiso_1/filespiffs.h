@@ -14,9 +14,6 @@ extern StaticJsonDocument<FILE_SIZE> status_doc;
 
 extern const char *fileconfig;
 extern const char *filedefault;
-extern const char *filelist;
-extern String filelog;
-extern String consult_filelog;
 extern String file_to_send;
 extern volatile bool saveConfig;
 

@@ -4,31 +4,19 @@ WiFiClient espClient;
 PubSubClient Mclient(espClient);
 WiFiClient client_http;
 
+const char* root_topic = "maquinas/";
 const char* publish_topic = "/out";
-const char* subcribe_topic = "/in";
-const char* list_topic = "/list";
-const char* add_topic = "/add";
-const char* get_topic = "/get";
-const char* print_topic = "/print";
+const char* subscribe_topic = "/in";
 const char* config_topic = "/config";
 const char* log_topic = "/log";
 const char* gps_topic = "/gps";
 const char* status_topic = "/status";
 const char* wild_topic = "/#";
 char buffer_union_publish[FILE_SIZE];
-char buffer_union_subcribe[FILE_SIZE];
+char buffer_union_subscribe[FILE_SIZE];
 char buffer_msg[FILE_SIZE];
 char buffer_msg_status[STATUS_SIZE];
-//char buffer_msg_list[LIST_SIZE];
 volatile boolean send_log = false;
-volatile boolean send_list = false;
-volatile boolean clear_log = false;
-volatile boolean new_log = false;
-volatile boolean print_log = false;
-volatile boolean flag_new_list = false;
-byte STATE, todo_byte;
-bool newcommand;
-uint32_t nclient;
 
 
 // -------------------------------------------------- mqtt_init
@@ -70,7 +58,23 @@ bool mqtt_check()
 //---------------------------------------------------- mqtt_send
 void mqtt_send()
 {
-  Mclient.publish(buffer_union_publish, buffer_msg);
+
+  Serial.println("{\"mqtt_status\":\"sending\"}");
+
+  //saveNewlog();
+  strcpy(buffer_union_publish, root_topic);
+  strcat(buffer_union_publish, obj["id"].as<const char*>());
+  strcat(buffer_union_publish, publish_topic);
+  strcat(buffer_union_publish, status_topic);
+
+  //JsonArray logObject = obj_log;
+  //size_t serializedLength = measureJson(logObject) + 1;
+  char tempBuffer[STATUS_SIZE];
+  serializeJson(status_doc, tempBuffer);
+  strcpy(buffer_msg_status, tempBuffer);
+
+  Mclient.publish(buffer_union_publish, buffer_msg_status);
+  //Mclient.publish(buffer_union_publish, buffer_msg);
 }
 
 
@@ -85,7 +89,9 @@ void mqtt_send_file(String file_to_send)
     return;
   }
 
-  strcpy(buffer_union_publish, obj["id"].as<const char*>());
+  strcpy(buffer_union_publish, root_topic);
+  strcat(buffer_union_publish, obj["id"].as<const char*>());
+  //strcat(buffer_union_publish, publish_topic);
   strcat(buffer_union_publish, publish_topic);
   strcat(buffer_union_publish, file_to_send.c_str());
 
@@ -117,7 +123,7 @@ void callback(char* topic, byte* payload, unsigned int length)
   jsonPayload[length] = '\0'; // Agrega el carácter nulo al final
   Serial.print("Message arrived: ");
 
-  //if (obj["test"].as<bool>())
+  if (obj["test"].as<bool>())
   {
     Serial.print(topic);
     Serial.print("<-- ");
@@ -125,7 +131,13 @@ void callback(char* topic, byte* payload, unsigned int length)
   }
   Serial.println();
 
-  if (strcmp(topic, strcat(strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic), config_topic)) == 0)
+  strcpy(buffer_union_subscribe, root_topic);
+  strcat(buffer_union_subscribe, obj["id"].as<const char*>());
+  strcat(buffer_union_subscribe, subscribe_topic);
+  strcat(buffer_union_subscribe, config_topic);
+
+
+  if (strcmp(topic, buffer_union_subscribe) == 0)
   {
     StaticJsonDocument<FILE_SIZE> conf_mqtt_doc;
     Serial.println("Config Update");
@@ -168,8 +180,10 @@ bool reconnect()
 {
   bool recsta = false;
 
-  //strcat(strcpy(buffer_union_subcribe, client_id), subcribe_topic);
-  strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic);
+  //strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic);
+  strcpy(buffer_union_subscribe, root_topic);
+  strcat(buffer_union_subscribe, obj["id"].as<const char*>());
+  strcat(buffer_union_subscribe, subscribe_topic);
   const char* macAddress = "mac";
   //const char* macAddress = getMACAddress();
 
@@ -187,11 +201,17 @@ bool reconnect()
       const char* mqtt_pass = obj["mqtt_pass"].as<const char*>();
 
       // Configurar usuario y contraseña
-      if (Mclient.connect(obj["id"].as<const char*>(), mqtt_user, mqtt_pass))
+      if (Mclient.connect(clientId.c_str(), mqtt_user, mqtt_pass))
       {
         Serial.println("connected whit user/pass");
-        Mclient.subscribe(strcat(strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic), wild_topic));
-        STATE |= (1 << 0);                  // MQTT state OK
+        //Mclient.subscribe(strcat(strcat(strcpy(buffer_union_subscribe, obj["id"].as<const char*>()), subscribe_topic), wild_topic));
+        //Mclient.subscribe(strcat(strcat(strcat(strcpy(buffer_union_subscribe, root_topic), obj["id"].as<const char*>()), subscribe_topic)),wild_topic);
+        strcpy(buffer_union_subscribe, root_topic);
+        strcat(buffer_union_subscribe, obj["id"].as<const char*>());
+        strcat(buffer_union_subscribe, subscribe_topic);
+        strcat(buffer_union_subscribe, wild_topic);
+
+        Mclient.subscribe(buffer_union_subscribe);
         recsta =  true;
       }
       else
@@ -199,8 +219,6 @@ bool reconnect()
         Serial.print("failed, rc=");
         Serial.print(Mclient.state());
         Serial.println(" try in the next");
-
-        STATE &= ~(1 << 0);                 // MQTT error
         recsta =  false;
       }
     }
@@ -209,8 +227,13 @@ bool reconnect()
       if (Mclient.connect(clientId.c_str()))
       {
         Serial.println("connected, NO user/pass");
-        Mclient.subscribe(strcat(strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic), wild_topic));
-        STATE |= (1 << 0);                  // MQTT state OK
+        //Mclient.subscribe(strcat(strcat(strcpy(buffer_union_subscribe, obj["id"].as<const char*>()), subscribe_topic), wild_topic));
+        strcpy(buffer_union_subscribe, root_topic);
+        strcat(buffer_union_subscribe, obj["id"].as<const char*>());
+        strcat(buffer_union_subscribe, subscribe_topic);
+        strcat(buffer_union_subscribe, wild_topic);
+
+        Mclient.subscribe(buffer_union_subscribe);
         recsta =  true;
       }
       else
@@ -219,7 +242,7 @@ bool reconnect()
         Serial.print(Mclient.state());
         Serial.println(" try in the next");
 
-        STATE &= ~(1 << 0);                 // MQTT error
+        //STATE &= ~(1 << 0);                 // MQTT error
         recsta =  false;
       }
     }

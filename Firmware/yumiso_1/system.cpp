@@ -107,7 +107,16 @@ void system_init()
   // WatchDog Timer
   esp_task_wdt_init(WDT_TIMEOUT, true);  //enable panic so ESP32 restarts
   esp_task_wdt_add(NULL);
+
+  pinMode(cont_monedas, INPUT_PULLUP);
+  pinMode(cont_premios, INPUT_PULLUP);
+  pinMode(I_maq_onoff, INPUT);               //add current thread to WDT watch
+
+  attachInterrupt(cont_monedas, botonpress_monedas, FALLING);
+  attachInterrupt(cont_premios, botonpress_premios, FALLING);
   pinMode(BT_REPORT, INPUT_PULLUP);
+
+  
   buttonState = LOW;
   lastButtonState = HIGH;
 }

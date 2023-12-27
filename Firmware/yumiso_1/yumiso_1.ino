@@ -6,8 +6,6 @@
 void setup()
 {
   system_init();
-
-
 }
 
 
@@ -16,6 +14,7 @@ void loop()
 {
   // PRead button for report
   buttonState = digitalRead(BT_REPORT);
+  status_doc["maquina_ON"] = bool(digitalRead(I_maq_onoff));
 
 
 
@@ -26,11 +25,7 @@ void loop()
 
     gps_update();
     read_clock();
-
-    // -------------------------------------------solo si no esta en proceso de surtido
-
-
-
+    
 
     // ----------------------------------------- check internet
 
@@ -40,7 +35,7 @@ void loop()
       if (mqtt_check())
       {
         // ------------------------------------------- Send Log
-        if (send_log == true)
+        if (send_log   == true)
         {
           mqtt_send_file(file_to_send);
         }
@@ -48,30 +43,16 @@ void loop()
         // ------------------------------------------- Send STATUS
         //if (send_log == true)
         {
-          Serial.println("{\"mqtt_status\":\"sending\"}");
-
-          //saveNewlog();
-
-          strcpy(buffer_union_publish, obj["id"].as<const char*>());
-          strcat(buffer_union_publish, publish_topic);
-          strcat(buffer_union_publish, status_topic);
-
-          //JsonArray logObject = obj_log;
-          //size_t serializedLength = measureJson(logObject) + 1;
-          char tempBuffer[STATUS_SIZE];
-          serializeJson(status_doc, tempBuffer);
-          strcpy(buffer_msg_status, tempBuffer);
-
-          Mclient.publish(buffer_union_publish, buffer_msg_status);
+          mqtt_send();
           //send_log = false;
         }
 
         // ------------------------------------------- Send LIST
-        if (send_list == true)
-        {
+        //if (send_list == true)
+        //{
           //mqtt_send_list();
-          send_list = false;
-        }
+          //send_list = false;
+        //}
       }
     }
 

@@ -28,12 +28,8 @@ extern String route;
 
 
 void fcsDownloadCallback(FCS_DownloadStatusInfo info);
-void SendData();
 void streamCallback(FirebaseStream data);
-void prepareData();
 void streamTimeoutCallback(bool timeout);
 void connectFirebase();
-void copyJsonObject(FirebaseJson& firebaseJson, JsonObject& jsonObject);
-//void merge(JsonVariant dst, JsonVariantConst src);
 
 #endif  // FIREBASEDB_H

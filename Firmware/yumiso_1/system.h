@@ -45,6 +45,7 @@
 #include "clock.h"
 #include "gps_service.h"
 #include "firebasedb.h"
+#include "counter.h"
 
 
 //15 seconds WDT
