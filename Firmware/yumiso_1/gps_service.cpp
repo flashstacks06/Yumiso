@@ -8,13 +8,13 @@ void save_gps_log()
 {
   //check SD
 
-  if (sd_ready)
-  {
+  //if (sd_ready)
+  //{
     // Guarda cada minuto la posicion
     // ----------------------------------------------- 1 minute refresh
     //if (millis() - previousMillisGPS >= intervalGPS)
     //if (millis() - previousMillisGPS >= 5000)
-    {
+    //{
       // Guarda la última vez que actualizaste el evento
       previousMillisGPS = millis();
 
@@ -25,33 +25,33 @@ void save_gps_log()
       //gps_doc["lon"] = status_doc["lon"];
 
       //gps_name_file = "/gps/" + String(anio) + "_" + String(mes) + "_" + String(dia_hoy) + ".csv";
-      gps_name_file = "/gps/" + String(anio) + "_" + String(mes) + "_" + String(dia_hoy) + ".csv";
+      //gps_name_file = "/gps/" + String(anio) + "_" + String(mes) + "_" + String(dia_hoy) + ".csv";
 
       //String csvLine = String((int)status_doc["time"] + "," + String((double)status_doc["lat"], 6) + "," + String((double)status_doc["lon"], 6) );
-      String csvLine = String(anio) + "-" + String(mes) + "-" + String(dia_hoy) + " " + String(hora) + ":" + String(minuto) + ":" + String(segundo) + ",";
-      csvLine += String((double)status_doc["lat"], 6) + "," + String((double)status_doc["lon"], 6);
-      csvLine += '\n'; // O puedes usar gps_str.concat('\n');
+      //String csvLine = String(anio) + "-" + String(mes) + "-" + String(dia_hoy) + " " + String(hora) + ":" + String(minuto) + ":" + String(segundo) + ",";
+      //csvLine += String((double)status_doc["lat"], 6) + "," + String((double)status_doc["lon"], 6);
+      //csvLine += '\n'; // O puedes usar gps_str.concat('\n');
 
       // ------------------------------------------- log de GPS existe?
-      if (SD.exists(gps_name_file))
-      {
+      //if (SD.exists(gps_name_file))
+      //{
         //appendFile(SD, gps_name_file.c_str(), gps_str.c_str());
-        appendFile(SD, gps_name_file.c_str(), csvLine.c_str());
-      }
-      else
-      {
+       // appendFile(SD, gps_name_file.c_str(), csvLine.c_str());
+      //}
+      //else
+      //{
         //Serial.println("File not found, init SD");
         //sd_ready = false;
         //if (!SD.exists(gps_name_file))
         //{
-        Serial.print("File not found, create?: ");
-        Serial.println(gps_name_file);
-        writeFile(SD, gps_name_file.c_str(), csvLine.c_str());
+        //Serial.print("File not found, create?: ");
+        //Serial.println(gps_name_file);
+        //writeFile(SD, gps_name_file.c_str(), csvLine.c_str());
         //}
-      }
+      //}
 
-    }
-  }
+    //}
+  //}
 }
 
 // ---------------------------------------------------- gps_init

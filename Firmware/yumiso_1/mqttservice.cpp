@@ -15,11 +15,11 @@ const char* log_topic = "/log";
 const char* gps_topic = "/gps";
 const char* status_topic = "/status";
 const char* wild_topic = "/#";
-char buffer_union_publish[LOG_SIZE];
-char buffer_union_subcribe[LOG_SIZE];
-char buffer_msg[LOG_SIZE];
+char buffer_union_publish[FILE_SIZE];
+char buffer_union_subcribe[FILE_SIZE];
+char buffer_msg[FILE_SIZE];
 char buffer_msg_status[STATUS_SIZE];
-char buffer_msg_list[LIST_SIZE];
+//char buffer_msg_list[LIST_SIZE];
 volatile boolean send_log = false;
 volatile boolean send_list = false;
 volatile boolean clear_log = false;
@@ -38,7 +38,7 @@ void mqtt_init()
   {
 
     Serial.println("{\"mqtt\":\"init\"}");
-    Mclient.setBufferSize(LIST_SIZE);
+    Mclient.setBufferSize(FILE_SIZE);
     Mclient.setServer(obj["mqtt_server"].as<const char*>(), obj["mqtt_port"].as<unsigned int>());
     Mclient.setCallback(callback);
     Mclient.setKeepAlive(30);
@@ -94,14 +94,6 @@ void mqtt_send_file(String file_to_send)
   {
     String line = file.readStringUntil('\n');
     if (line.length() > 0) {
-      // Verificar si la línea es un JSON válido
-      //StaticJsonDocument<256> doc;
-      //DeserializationError error = deserializeJson(doc, line);
-      //if (error) {
-      //Serial.print("Error al parsear JSON: ");
-      //Serial.println(error.c_str());
-      //continue;
-      //}
 
       // Publicar la línea
       Mclient.publish(buffer_union_publish, line.c_str(), line.length());
@@ -115,25 +107,6 @@ void mqtt_send_file(String file_to_send)
 }
 
 
-//---------------------------------------------------- mqtt_send_list
-void mqtt_send_list()
-{
-  strcpy(buffer_union_publish, obj["id"].as<const char*>());
-  strcat(buffer_union_publish, publish_topic);
-  strcat(buffer_union_publish, list_topic);
-
-  JsonArray logObject = obj_list;
-  size_t serializedLength = measureJson(logObject) + 1;
-  char tempBuffer[serializedLength];
-  serializeJson(logObject, tempBuffer, serializedLength);
-  strcpy(buffer_msg_list, tempBuffer);
-
-  Mclient.publish(buffer_union_publish, buffer_msg_list);
-
-  Serial.println("{\"mqtt_list\":\"sending\"}");
-
-
-}
 
 //--------------------------------------------------- callback
 void callback(char* topic, byte* payload, unsigned int length)
@@ -152,111 +125,9 @@ void callback(char* topic, byte* payload, unsigned int length)
   }
   Serial.println();
 
-
-
-  if (strcmp(topic, strcat(strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic), list_topic)) == 0)
+  if (strcmp(topic, strcat(strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic), config_topic)) == 0)
   {
-    // Parsear el payload a un array de objetos JSON
-    //DynamicJsonDocument doc_m(LIST_SIZE); // Tamaño máximo del JSON, ajusta según tus necesidades
-    StaticJsonDocument<LIST_SIZE> doc_m;
-
-    DeserializationError error = deserializeJson(doc_m, jsonPayload);
-
-    if (error) {
-      Serial.print("deserializeJson() failed: ");
-      Serial.println(error.c_str());
-      return;
-    }
-
-    // Verificar que el payload sea un array
-    if (!doc_m.is<JsonArray>()) {
-      Serial.println("El payload no es un array JSON.");
-      return;
-    }
-
-    // Iterar sobre los elementos del array
-    //obj_list.clear();
-    obj_list = doc_m.as<JsonArray>();
-    for (JsonObject jsonObject : obj_list)
-    {
-      const char* nombre = jsonObject["nombre"];
-      int cliente = jsonObject["cliente"];
-      float lat = jsonObject["lat"];
-      float lon = jsonObject["lon"];
-      int litros = jsonObject["litros"];
-      float precio = jsonObject["precio"];
-      float factor = jsonObject["factor"];
-      //uint32_t pulsos_litro = jsonObject["pulsos_litro"];
-
-      Serial.println();
-      Serial.print("Nombre: ");
-      Serial.println(nombre);
-      Serial.print("Cliente: ");
-      Serial.println(cliente);
-      Serial.print("Latitud: ");
-      Serial.println(lat, 6); // Imprimir con 6 decimales de precisión
-      Serial.print("Longitud: ");
-      Serial.println(lon, 6); // Imprimir con 6 decimales de precisión
-      Serial.print("Litros: ");
-      Serial.println(litros);
-      Serial.print("Precio: ");
-      Serial.println(precio);
-      Serial.print("Factor: ");
-      Serial.println(factor);
-      Serial.println();
-    }
-
-    //
-    // Flag save ListData
-
-    //Serial.print("New List Data: ");
-    //serializeJson(obj_list,Serial);
-    //Serial.println();
-
-    //esp_task_wdt_reset();
-    saveListData();
-    search_nclient(0);
-
-    //send_list = true;
-    //flag_new_list = true;
-    mqtt_send_list();
-
-
-    return;
-
-  }
-  else  if (strcmp(topic, strcat(strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic), add_topic)) == 0)
-  {
-    Serial.println("Adding");
-    // const size_t len = (length+10);
-    const size_t len = 128;
-    StaticJsonDocument<len> doc_m; // Tamaño máximo del JSON, ajusta según tus necesidades
-    //DynamicJsonDocument doc_m(len); // Tamaño máximo del JSON, ajusta según tus necesidades
-    DeserializationError error = deserializeJson(doc_m, jsonPayload);
-
-    // Verificar que el payload sea un object
-    //if (!doc_m.is<JsonObject>()) {
-    //Serial.println("El payload no es un JSON.");
-    //return;
-    //}
-
-    // Iterar sobre los elementos del array
-    //obj["new"] = "new new";
-    //doc_list.add(obj["new"]);
-    //obj_list.add(obj["new"].as<JsonObject>());
-    //doc_list.add(doc_m_add.as<JsonObject>());
-    //obj_list.add(doc_m.as<JsonObject>());
-    //saveListData();
-    return;
-  }
-  else  if (strcmp(topic, strcat(strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic), get_topic)) == 0)
-  {
-    send_list = true;
-    Serial.println("Consult List");
-  }
-  else  if (strcmp(topic, strcat(strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic), config_topic)) == 0)
-  {
-    StaticJsonDocument<LIST_SIZE> conf_mqtt_doc;
+    StaticJsonDocument<FILE_SIZE> conf_mqtt_doc;
     Serial.println("Config Update");
 
     DeserializationError error = deserializeJson(conf_mqtt_doc, jsonPayload);
@@ -285,48 +156,6 @@ void callback(char* topic, byte* payload, unsigned int length)
     Serial.println();
 
     saveConfig = true;
-    return;
-  }
-  else  if (strcmp(topic, strcat(strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic), log_topic)) == 0)
-    //else  if (strcmp(topic,strcat( strcat(strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic), log_topic , get_topic))) == 0)
-  {
-    if (strcmp(jsonPayload, "delete") == 0)
-    {
-      clear_log = true;
-      return;
-    }
-
-    // else if (strcmp(jsonPayload, "get") == 0)
-    //{
-    //send_log = true;
-    //Serial.println("prepare send");
-    //return;
-    //}
-    //else if (strcmp(jsonPayload, "print") == 0)
-    //{
-    //print_log = true;
-    //Serial.println("Print All Logs");
-    //return;
-    //}
-
-  }
-  else  if (strcmp(topic, (strcat( strcat(strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic), log_topic ), print_topic))) == 0)
-  {
-    print_log = true;
-    Serial.print("Print Logs: ");
-    consult_filelog = "/logs/";
-    consult_filelog += jsonPayload;
-    Serial.println(consult_filelog);
-    return;
-  }
-
-  else  if (strcmp(topic, (strcat( strcat(strcat(strcpy(buffer_union_subcribe, obj["id"].as<const char*>()), subcribe_topic), log_topic ), get_topic))) == 0)
-  {
-    send_log = true;
-    Serial.print("Prepare to SEND file: ");
-    //consult_filelog = "/logs/";
-    file_to_send = jsonPayload;
-    Serial.println(file_to_send);
     return;
   }
   return;

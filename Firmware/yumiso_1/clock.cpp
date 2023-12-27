@@ -268,19 +268,6 @@ void read_clock()
         Serial.println("\"}");
 
 
-        lcd.setCursor(0, 2); //
-        lcd.print(dia_hoy);
-        lcd.print("/");
-        lcd.print(mes);
-        lcd.print("/");
-        lcd.print(anio);
-        lcd.print("  ");
-        lcd.print(hora);
-        lcd.print(":");
-        lcd.print(minuto);
-        lcd.print(":");
-        lcd.print(segundo);
-
       }
     }
     else
@@ -337,17 +324,4 @@ void printLocalTime()
   Serial.print(segundo, DEC);
   Serial.println("\"}");
 
-
-  lcd.setCursor(0, 2); //
-  lcd.print(dia_hoy);
-  lcd.print("/");
-  lcd.print(mes);
-  lcd.print("/");
-  lcd.print(anio);
-  lcd.print("  ");
-  lcd.print(hora);
-  lcd.print(":");
-  lcd.print(minuto);
-  lcd.print(":");
-  lcd.print(segundo);
 }

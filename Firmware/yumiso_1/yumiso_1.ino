@@ -2,15 +2,12 @@
 
 
 
-
-
 // ------------------------------------------------------ (CONFIG) setup
 void setup()
 {
   system_init();
 
-  buttonState = LOW;
-  lastButtonState = HIGH;
+
 }
 
 
@@ -72,7 +69,7 @@ void loop()
         // ------------------------------------------- Send LIST
         if (send_list == true)
         {
-          mqtt_send_list();
+          //mqtt_send_list();
           send_list = false;
         }
       }
@@ -83,16 +80,6 @@ void loop()
 
 
 
-  // ----------------------------------------- save new List
-  if (flag_new_list == true)
-  {
-    flag_new_list = false;
-
-    Serial.print("Saving List on Loop: ");
-    //serializeJson(doc_list,Serial);
-    //Serial.println();
-    //saveListData();
-  }
 
 
 
@@ -100,50 +87,10 @@ void loop()
   if (saveConfig == true)  // Data change
   {
     saveConfig = false;
-
-    //Serial.println("{\"upload_config_from_loop\":true}");
-    //saveConfigData();
-
-    //Serial.println("saving config");
-
-
-    //DynamicJsonDocument json(1024);
-
-    //for (WiFiManagerParameter* p : customParams) {
-    //  doc[p->getID()] = p->getValue();
-    //}
-
-    //File configFile = SPIFFS.open("/config.json", "w");
-    //if (!configFile) {
-    //  Serial.println("failed to open config file for writing");
-    //}
-
-    //serializeJson(obj, Serial);
-    //serializeJson(obj, configFile);
-    //configFile.close();
-    //end save
-    //ESP.restart();
-
-    //loadConfig();
-
-    // ----------------------------------------- save new data
-    //if (flag_newList)
-    //{
-    //Serial.println("{\"upload_list\":true}");
-    //saveListData();
-    //flag_newList = false;
-    //loadConfig();
-    //saveConfig = false;
-    //ESP.restart();
-    //return;
-    //}
-    //else
-    //{
+   
     Serial.println("{\"upload_config\":true}");
     saveConfigData();
     loadConfig();
-    //
-    //}
 
   }
 
@@ -164,30 +111,11 @@ void loop()
     {
       Serial.println("Short press detected!");
       read_clock();
-      consult_filelog = "/logs/" + String(anio) + "_" + String(mes) + "_" + String(dia_hoy) + ".json";
-      print_log = true;
     }
     else if (millis() - buttonPressTime >= (4 * longPressDuration)) // Reinicio de fabrica
     {
       Serial.println("Super Long press detected!");
-
-      obj.clear();
-      obj = getJSonFromFile(SPIFFS, &doc, filedefault);
-
-
-      //print_log = false;
-      //clear_log = true;
-      //folio = 1;
-      //obj["folio"] = folio;
-
-      consult_filelog = "/logs/" + String(anio) + "_" + String(mes) + "_" + String(dia_hoy) + ".json";
-      deleteFile(SD, consult_filelog.c_str());
-
-
-      saveConfig = true;
-      Serial.println("{\"default_config\":true}");
-      saveConfigData();
-      ESP.restart();
+      reset_config();
 
     }
     else if (millis() - buttonPressTime >= longPressDuration) // Reinicia el log
