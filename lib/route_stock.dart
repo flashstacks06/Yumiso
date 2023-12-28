@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'route_moneybag.dart'; // Asegúrate de tener esta ruta y página definidas en tu proyecto
-
+import 'qr_moneybag.dart'; // Asegúrate de tener esta ruta y página definidas en tu proyecto
+import 'dart:convert'; // Agrega esta importación
 class RouteStock extends StatefulWidget {
   final String userEmail;
   final String qrId;
@@ -84,13 +84,18 @@ class _RouteStockState extends State<RouteStock> {
       onPressed: () {
         final stockValues = getCombinedValues(stockTextControllers, stockIndices);
         final refillValues = getCombinedValues(refillTextControllers, stockIndices);
-        final combinedValues = [...stockValues, ...refillValues];
-        print('Valores combinados: $combinedValues');
+        //final combinedValues = [...stockValues, ...refillValues];
+        final quantitiesMap = {
+          'Stock': stockValues,
+          'Refill': refillValues,
+        };
+        final quantitiesJson = json.encode(quantitiesMap);
+        print('Valores combinados: $quantitiesJson');
         print('Correo: $userEmail'); // Imprimir correo
         print('ID: $qrId'); // Imprimir ID
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => MoneybagPage(userEmail: widget.userEmail,qrId: widget.qrId,combinedValues:combinedValues,),),
+          MaterialPageRoute(builder: (context) => QRCodeScannerApp_m(userEmail: widget.userEmail, qrId: widget.qrId, combinedValues: quantitiesJson),),
         );
       },
       child: const Text('Send'),
@@ -144,11 +149,12 @@ class _RouteStockState extends State<RouteStock> {
   }
 
   List<String> getCombinedValues(List<TextEditingController> controllers, List<int> indices) {
-    return indices.asMap().entries.map((entry) {
-      final index = entry.key;
-      final fixedIndex = entry.value;
-      final text = controllers[index].text;
-      return '$fixedIndex:${int.tryParse(text) ?? 0}';
-    }).toList();
+    final combinedValues = <String>[];
+    for (var i = 0; i < indices.length; i++) {
+      final fixedIndex = indices[i];
+      final text = controllers[i].text;
+      combinedValues.add('$fixedIndex:${int.tryParse(text) ?? 0}');
+    }
+    return combinedValues;
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -9,13 +10,15 @@ import 'package:mqtt_client/mqtt_server_client.dart';
 class MoneybagPage extends StatefulWidget {
   final String userEmail;
   final String qrId;
-  final List<String> combinedValues;
+  final String combinedValues;
+  final String bagid;
 
   MoneybagPage({
     Key? key,
     required this.userEmail,
     required this.qrId,
-    required this.combinedValues,
+    required this.combinedValues, 
+    required this.bagid,
   }) : super(key: key);
 
   @override
@@ -44,7 +47,7 @@ class _MoneybagPageState extends State<MoneybagPage> {
     _connectToMQTT();
     super.initState();
     _timeController = TextEditingController(text: _getCurrentTime());   //Actualizo en tiempo real el tiempo
-    _moneybagController = TextEditingController(text: '1');       //Seteo el valor que irá en moneybag
+    _moneybagController = TextEditingController(text: widget.bagid);       //Seteo el valor que irá en moneybag
 
     _timer = Timer.periodic(const Duration(seconds: 1), _updateTime);
   }
@@ -77,14 +80,15 @@ class _MoneybagPageState extends State<MoneybagPage> {
   }
 
 void enviarDatosMQTT() {
-  final message = [
-    widget.userEmail,
-    widget.qrId,
-    widget.combinedValues.toString(),
-  ];
-  final formattedMessage = '{${message.join(', ')}}';
+  final Map<String, dynamic> message = {
+    'Correo': widget.userEmail,
+    'qrid': widget.qrId,
+    'bag': widget.bagid,
+    'data': widget.combinedValues.toString(),
+  };
+  //final formattedMessage = '{${message.join(', ')}}';
   final builder = MqttClientPayloadBuilder();
-  builder.addString(formattedMessage);
+  builder.addString(json.encode(message));
   final payload = builder.payload;
   
   const textoEspecifico = 'reporte'; // Reemplaza con tu mensaje
@@ -93,7 +97,7 @@ void enviarDatosMQTT() {
   final payload2 = builder2.payload; // Aquí se debe usar builder en lugar de builder2
 
   if (mqttClient.connectionStatus!.state == MqttConnectionState.connected) {
-    mqttClient.publishMessage('users/route/moneybag', MqttQos.atMostOnce, payload!);
+    mqttClient.publishMessage('users/route/moneybag/${widget.qrId}', MqttQos.atMostOnce, payload!);
     mqttClient.publishMessage('yumiso/in/${widget.qrId}', MqttQos.atMostOnce, payload2!);
     Fluttertoast.showToast(
       msg: 'Datos enviados a MQTT',

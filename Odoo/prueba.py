@@ -1,67 +1,34 @@
 import xmlrpc.client
-import sys
-import base64
-from datetime import datetime
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives import padding
-from cryptography.hazmat.backends import default_backend
 
-# Argumentos de la línea de comandos
-numero_maquina = sys.argv[1]  # Número de la máquina
-correo_cliente = sys.argv[2]  # Correo electrónico del cliente
-numero_maquina = sys.argv[2]  # Número de la máquina
-correo_cliente_enc = sys.argv[1]  # Correo electrónico del cliente
-ids_productos_str = sys.argv[3]  # String de IDs de productos (formato de lista)
+# Configuración
+url = 'http://137.184.86.135:8069'  # Asegúrate de que esta URL sea accesible
+db = 'yumiso'
+username = 'info@inventoteca.com'
+password = 'Gr4nj3r04dm1n'
 
-# Eliminar los corchetes y espacios, y luego convertir la cadena en una lista de enteros
-ids_productos = [int(x) for x in ids_productos_str.strip('[]').split(',') if x.strip()]
-ids_productos = [int(x) for x in ids_productos_str.strip('[]').split(',') if int(x) != 0]
+# Iniciar sesión
+common = xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(url))
+uid = common.authenticate(db, username, password, {})
 
+# Obtener los modelos
+models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(url))
 
+# Número de la máquina que se va a buscar
+machine_number = '71'  # Cambiar por el número de máquina recibido
+product_name_to_search = f"Maquina {machine_number}"  # Completa el nombre del producto
 
-# URL y credenciales para el servidor XML-RPC
-@@ -33,7 +38,8 @@ def buscar_producto(numero_maquina):
-    return productos[0] if productos else None
+try:
+    # Buscar producto por nombre
+    product_ids = models.execute_kw(db, uid, password,
+        'product.product', 'search',
+        [[['name', '=', product_name_to_search]]],
+        {'limit': 1})
 
-# Función para buscar el cliente basado en el correo electrónico
-def buscar_cliente(correo_cliente):
-def buscar_cliente():
-    correo_cliente = unpad(decrypt_aes(correo_cliente_enc, key, iv)).decode('utf-8').strip()
-    cliente = models.execute_kw(db, uid, password,
-        'res.partner', 'search_read',
-        [[['email', '=', correo_cliente]]],
-@@ -96,11 +102,33 @@ def iniciar_orden_reparacion(orden_id):
-def finalizar_orden_reparacion(orden_id):
-    models.execute_kw(db, uid, password, 'repair.order', 'action_repair_end', [orden_id])
+    if product_ids:
+        product_id = product_ids[0]
+        print(f"ID del producto para '{product_name_to_search}': {product_id}")
+    else:
+        print(f"No se encontró el producto con el nombre '{product_name_to_search}'")
 
-# Funciones de Desencriptación y Quitar Relleno
-def decrypt_aes(encrypted_data, base64_key, base64_iv):
-    key = base64.urlsafe_b64decode(base64_key)
-    iv = base64.urlsafe_b64decode(base64_iv)
-    encrypted_data = base64.urlsafe_b64decode(encrypted_data)
-
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-    decryptor = cipher.decryptor()
-    plaintext = decryptor.update(encrypted_data) + decryptor.finalize()
-
-    return plaintext
-
-def unpad(data):
-    unpadder = padding.PKCS7(128).unpadder()
-    unpadded_data = unpadder.update(data) + unpadder.finalize()
-    return unpadded_data
-
-# Clave y IV predefinidos para desencriptación
-key = 'O1GqAK5igRS-BTYgSVLBvg=='
-iv = 'v0kiTpvIvAN1IoFQNyB1IQ=='
-
-
-# Ejecutar el script
-if __name__ == "__main__":
-    producto = buscar_producto(numero_maquina)
-    print(producto)
-    cliente = buscar_cliente(correo_cliente)
-    cliente = buscar_cliente()
-    print(cliente)
-
-    if producto and cliente:
+except Exception as e:
+    print(f"Se produjo un error al intentar obtener los datos: {e}")

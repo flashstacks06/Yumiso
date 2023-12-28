@@ -1,5 +1,6 @@
 import xmlrpc.client
 import json
+import sys
 
 # Configuración
 url = 'http://137.184.86.135:8069/'
@@ -14,14 +15,14 @@ uid = common.authenticate(db, username, password, {})
 # Obtener los modelos
 models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(url))
 
-maquina = input("Dame el numero de maquina: ")
+maquina = sys.argv[1]
 n_maquina = f"Maquina {maquina}"
 
 # Obtener la información de los productos
 products = models.execute_kw(db, uid, password,
     'product.product', 'search_read',
-    [[['available_in_pos', '=', True], 
-      ['name', 'not in', ['Juegos', 'Premios']]]], {'fields': ['name']})
+    [[['available_in_pos', '=', True],
+      ['name', 'not in', ['Juegos', 'Premios']]]], {'fields': ['name', 'id']})  # Incluir el campo 'id'
 
 # Información de los almacenes
 warehouses = models.execute_kw(db, uid, password,
@@ -37,18 +38,17 @@ product_info = []
 # Obtener la cantidad de productos por ubicación
 for product in products:
     product_name = product['name']
-    
+    product_id = product['id']  # Obtener el ID del producto
+
     qty_by_location = models.execute_kw(db, uid, password,
         'stock.quant', 'search_read',
-        [[['product_id', '=', product['id']], ['location_id', 'in', list(location_to_warehouse.keys())]]],
+        [[['product_id', '=', product_id], ['location_id', 'in', list(location_to_warehouse.keys())]]],
         {'fields': ['location_id', 'quantity']})
     
     for location_id, (warehouse_id, warehouse_name) in location_to_warehouse.items():
         quantity = next((qty['quantity'] for qty in qty_by_location if qty['location_id'][0] == location_id), 0)
         product_info.append({
-            'name': product_name,
-            'warehouse': warehouse_name,
-            'quantity': quantity
+            product_id: quantity,
         })
 
 # Convertir la lista en JSON

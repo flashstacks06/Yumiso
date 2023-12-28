@@ -18,4 +18,4 @@ mensaje = "Ubicación"
 # Publicar el mensaje en el producto de la orden de reparación
 models.execute_kw(db, uid, password,
     'product.product', 'message_post',
-    [6], {'body': mensaje})
+    [25], {'body': mensaje})
