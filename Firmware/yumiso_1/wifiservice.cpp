@@ -145,7 +145,7 @@ void wifi_init()
     // Star WiFi connection
     WiFi.begin(auxssid, auxpass);
 
-    
+
     Serial.println("\"}}");
     Serial.println("{\"wifi\":\"init\"}");
 
@@ -183,31 +183,29 @@ bool wifi_check()
   //if (obj["enable_wifi"].as<bool>())
   {
 
-    //if ((millis() - s_timestamp) >= connectTimeoutMs) // check to an interval of time
-    //{
-    //s_timestamp = millis();
 
     // ------------------ Wifi Connected
     if (WiFi.status() == WL_CONNECTED)
     {
-      Serial.print("{\"wifi_connected\": ");
-      serializeJson(obj["ssid"],Serial);
-      Serial.println("}");
-      Serial.print("{\"ip\":\"");
-      Serial.print(WiFi.localIP());
-      Serial.println("\"}");
+      if (obj["test"].as<bool>() == true)
+      {
+        Serial.print("{\"wifi_connected\": ");
+        serializeJson(obj["ssid"], Serial);
+        Serial.println("}");
+        Serial.print("{\"ip\":\"");
+        Serial.print(WiFi.localIP());
+        Serial.println("\"}");
+      }
+
       status_doc["ssid"] = obj["ssid"];
       status_doc["ip"] = WiFi.localIP();
 
       flag = true;
-      //STATE = 1;
-      STATE |= (1 << 6);
 
       // ------------------------ firebase connection
       if (updated == false)
       {
         Serial.println("{\"load_firmware\":true}");
-        //oled_display_text("VERSION \n NUEVA");
         connectFirebase();
       }
 
@@ -218,8 +216,6 @@ bool wifi_check()
     {
       Serial.println("{\"wifi\":\"disconnected\"}");
       flag = false;
-      //STATE = 0;
-      STATE &= ~(1 << 6);
       if (server_running == false)
         wifiAP(true);         // run force server
       else
