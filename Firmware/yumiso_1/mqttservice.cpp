@@ -11,6 +11,7 @@ const char* config_topic = "/config";
 const char* log_topic = "/log";
 const char* gps_topic = "/gps";
 const char* status_topic = "/status";
+const char* reporte_topic = "/reporte";
 const char* wild_topic = "/#";
 char buffer_union_publish[FILE_SIZE];
 char buffer_union_subscribe[FILE_SIZE];
@@ -65,7 +66,7 @@ void mqtt_send()
   strcpy(buffer_union_publish, root_topic);
   strcat(buffer_union_publish, obj["id"].as<const char*>());
   strcat(buffer_union_publish, publish_topic);
-  strcat(buffer_union_publish, status_topic);
+  strcat(buffer_union_publish, gps_topic);
 
   //JsonArray logObject = obj_log;
   //size_t serializedLength = measureJson(logObject) + 1;
@@ -131,13 +132,13 @@ void callback(char* topic, byte* payload, unsigned int length)
   }
   Serial.println();
 
-  strcpy(buffer_union_subscribe, root_topic);
+  //strcpy(buffer_union_subscribe, root_topic);
   strcat(buffer_union_subscribe, obj["id"].as<const char*>());
   strcat(buffer_union_subscribe, subscribe_topic);
   strcat(buffer_union_subscribe, config_topic);
 
 
-  if (strcmp(topic, buffer_union_subscribe) == 0)
+  if (strcmp(topic, (strcat(strcpy(buffer_union_subscribe, root_topic),obj["id"].as<const char*>()))) == 0)
   {
     StaticJsonDocument<FILE_SIZE> conf_mqtt_doc;
     Serial.println("Config Update");
@@ -170,6 +171,7 @@ void callback(char* topic, byte* payload, unsigned int length)
     saveConfig = true;
     return;
   }
+  //else if()
   return;
 }
 

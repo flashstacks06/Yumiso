@@ -85,9 +85,9 @@ void gps_update()
   {
     // almost ready
     obj["gps_status"] = "calculating";
-    obj["lat"] = gps.location.lat();
-    obj["lon"] = gps.location.lng();
-    save_gps_log();
+    //obj["lat"] = gps.location.lat();
+    //obj["lon"] = gps.location.lng();
+    //save_gps_log();
     Serial.println(F("{\"gps_status\": \"calculating\"}"));
 
   }
