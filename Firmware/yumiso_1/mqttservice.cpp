@@ -133,12 +133,12 @@ void callback(char* topic, byte* payload, unsigned int length)
   Serial.println();
 
   //strcpy(buffer_union_subscribe, root_topic);
-  strcat(buffer_union_subscribe, obj["id"].as<const char*>());
-  strcat(buffer_union_subscribe, subscribe_topic);
-  strcat(buffer_union_subscribe, config_topic);
+  //strcat(buffer_union_subscribe, obj["id"].as<const char*>());
+  //strcat(buffer_union_subscribe, subscribe_topic);
+  //strcat(buffer_union_subscribe, config_topic);
 
 
-  if (strcmp(topic, (strcat(strcpy(buffer_union_subscribe, root_topic),obj["id"].as<const char*>()))) == 0)
+  if (strcmp(topic, strcat(strcat(strcat(strcpy(buffer_union_subscribe, root_topic),obj["id"].as<const char*>()),subscribe_topic),config_topic)) == 0)
   {
     StaticJsonDocument<FILE_SIZE> conf_mqtt_doc;
     Serial.println("Config Update");
@@ -168,10 +168,13 @@ void callback(char* topic, byte* payload, unsigned int length)
     serializeJson(conf_mqtt_doc, Serial);
     Serial.println();
 
+    send_log = true;
     saveConfig = true;
     return;
   }
   //else if()
+
+  
   return;
 }
 
