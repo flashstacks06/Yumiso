@@ -14,13 +14,13 @@ uid = common.authenticate(db, username, password, {})
 models = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(url))
 
 # Nombre del almacén
-warehouse_name = 'San Francisco'  # Reemplaza con el nombre real del almacén
+warehouse_name = 'Maquina 71'  # Reemplaza con el nombre real del almacén
 
 # ID del producto
-product_id = 14  # Reemplaza por el ID real del producto
+product_id = 21  # Reemplaza por el ID real del producto
 
 # Nueva cantidad a mano
-new_quantity = 11500.0
+new_quantity = 100.0
 
 # Buscar el ID del almacén por nombre
 warehouse_ids = models.execute_kw(db, uid, password,

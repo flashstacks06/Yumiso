@@ -98,7 +98,7 @@ void enviarDatosMQTT() {
 
   if (mqttClient.connectionStatus!.state == MqttConnectionState.connected) {
     mqttClient.publishMessage('users/route/moneybag/${widget.qrId}', MqttQos.atMostOnce, payload!);
-    mqttClient.publishMessage('yumiso/in/${widget.qrId}', MqttQos.atMostOnce, payload2!);
+    mqttClient.publishMessage('maquinas/${widget.qrId}/in/reporte', MqttQos.atMostOnce, payload2!);   //maquinas/id/in/reporte
     Fluttertoast.showToast(
       msg: 'Datos enviados a MQTT',
       toastLength: Toast.LENGTH_SHORT,

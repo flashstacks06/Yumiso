@@ -51,7 +51,57 @@ for product in products_from_xmlrpc:
 
 stock_elements_from_json = [{parts[0]: int(parts[1])} for item in data_dict["Stock"] for parts in [item.split(":")] if len(parts) == 2]
 differences = [{key: value - sum(product_info_from_xmlrpc[int(key)].values())} for item in stock_elements_from_json for key, value in item.items()]
+print(product_info_from_xmlrpc)
 print(differences)
+
+
+total_stock_json = sum(int(item.split(":")[1]) for item in data_dict["Stock"])
+print(total_stock_json)
+# Sumar todas las cantidades en la bodega para todos los productos
+total_warehouse_stock = sum(sum(quantities.values()) for quantities in product_info_from_xmlrpc.values())
+print(total_warehouse_stock)
+# Calcular la diferencia entre el stock total del JSON y el stock total en la bodega
+
+
+def obtener_cantidad_premios(numero_maquina):
+    maquina = f"Maquina {numero_maquina}"
+
+    # Buscar el punto de venta con el número de máquina
+    punto_venta_id = models.execute_kw(db, uid, password,
+        'pos.config', 'search',
+        [[['name', '=', maquina]]],
+        {'limit': 1})
+
+    # Asegúrate de que encontraste un punto de venta
+    if punto_venta_id:
+        # Buscar la orden más nueva que tenga solo los dos productos "Juego" y "Premios"
+        order_ids = models.execute_kw(db, uid, password,
+            'pos.order', 'search',
+            [[['session_id.config_id', '=', punto_venta_id[0]],
+              ['lines.product_id.name', 'in', ['Juegos', 'Premios']],
+              ['state', '=', 'done']]],  # Asegúrate de que la orden está finalizada
+            {'limit': 1, 'order': 'date_order desc'})  # Orden más reciente
+
+        # Asegúrate de que encontraste una orden
+        if order_ids:
+            # Leer los datos de la orden
+            order_data = models.execute_kw(db, uid, password,
+                'pos.order', 'read',
+                [order_ids],
+                {'fields': ['lines']})
+
+            # Ahora busca la cantidad del producto "Premios"
+            for line in order_data[0]['lines']:
+                line_data = models.execute_kw(db, uid, password,
+                    'pos.order.line', 'read',
+                    [line],
+                    {'fields': ['product_id', 'qty']})
+
+                if line_data[0]['product_id'][1] == 'Premios':
+                    cantidad_premios = line_data[0]['qty']
+                    print(cantidad_premios)
+                    return cantidad_premios  # Devuelve la cantidad encontrada
+
 # Funciones de desencriptación y quitar relleno
 def decrypt_aes(encrypted_data, base64_key, base64_iv):
     key = base64.urlsafe_b64decode(base64_key)
@@ -118,7 +168,15 @@ def crear_orden_con_diferencias(differences, session_id):
     order_id = models.execute_kw(db, uid, password, 'pos.order', 'create', [pos_order_data])
     print(f"Orden creada con ID: {order_id}")
 # Iniciar sesión POS antes de crear la orden
-session_id = iniciar_sesion_pos()
 
-# Crear orden con las diferencias y la sesión iniciada
-crear_orden_con_diferencias(differences, session_id)
+cantidad_premios = obtener_cantidad_premios(maquina)
+
+diferencia_stock = total_warehouse_stock - cantidad_premios - total_stock_json
+print(diferencia_stock)
+
+
+if diferencia_stock != 0:
+    # Crear orden con las diferencias
+    # Aquí debes reemplazar 'session_id' con la sesión de POS que necesites utilizar.
+    session_id = iniciar_sesion_pos()  # Asumiendo que esta función ya está definida y funciona correctamente
+    crear_orden_con_diferencias(diferencia_stock, session_id)  # Asumiendo que esta función ya está definida y adapta el parámetro 'diferencia_stock' correctamente
