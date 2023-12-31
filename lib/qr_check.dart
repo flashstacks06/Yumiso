@@ -1,4 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'dart:convert';
 
@@ -11,22 +15,61 @@ class QRCodeScannerApp extends StatefulWidget {
   final String mqttResponse; // Agregado para recibir la respuesta MQTT
   final String userEmail;    // Correo electrónico del usuario
 
-  QRCodeScannerApp({Key? key, required this.mqttResponse,required this.userEmail}) : super(key: key);
-  
+  QRCodeScannerApp({Key? key, required this.mqttResponse, required this.userEmail}) : super(key: key);
 
   @override
   _QRCodeScannerAppState createState() => _QRCodeScannerAppState();
+}
+
+MqttServerClient createRandomMqttClient(String broker, int port) {
+  final Random random = Random();
+  final int randomNumber = random.nextInt(10000);
+  final String clientId = 'mqtt_client_$randomNumber';
+
+  final MqttServerClient mqttClient = MqttServerClient.withPort(broker, clientId, port);
+
+  return mqttClient;
 }
 
 class _QRCodeScannerAppState extends State<QRCodeScannerApp> {
   late QRViewController _controller;
   final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
   String? qrId = '0'; // Variable para almacenar el número de ID del código QR
+  final MqttServerClient mqttClient = createRandomMqttClient('137.184.86.135', 1883);
+  bool mqttConnected = false; // Bandera para verificar la conexión MQTT
+
+  @override
+  void initState() {
+    super.initState();
+    _connectToMQTT();
+  }
 
   @override
   void dispose() {
     _controller.dispose();
+    mqttClient.disconnect();
     super.dispose();
+  }
+
+  void _connectToMQTT() async {
+    try {
+      await mqttClient.connect();
+      mqttConnected = true;
+    } catch (e) {
+      print('Error al conectarse a MQTT: $e');
+      mqttConnected = false;
+    }
+  }
+
+  void enviarDatosMQTT() {
+    const textoEspecifico = 'reporte'; // Reemplaza con tu mensaje
+    final builder = MqttClientPayloadBuilder();
+    builder.addString(textoEspecifico);
+    final payload = builder.payload;
+    
+    if (mqttConnected && qrId != null && widget.mqttResponse == 'Route') {
+      mqttClient.publishMessage('maquinas/$qrId/in/reporte', MqttQos.atMostOnce, payload!);
+    }
   }
 
   @override
@@ -108,15 +151,16 @@ class _QRCodeScannerAppState extends State<QRCodeScannerApp> {
     if (qrId != null) {
       switch (widget.mqttResponse) {
         case 'Route':
+          enviarDatosMQTT();
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => RouteCheck(userEmail: widget.userEmail,qrId: qrId!,)),
+            MaterialPageRoute(builder: (context) => RouteCheck(userEmail: widget.userEmail, qrId: qrId!,)),
           );
           break;
         case 'Maintenance':
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => Maintenance1(userEmail: widget.userEmail,qrId: qrId!,)),
+            MaterialPageRoute(builder: (context) => Maintenance1(userEmail: widget.userEmail, qrId: qrId!,)),
           );
           break;
         // No se necesita manejar 'Arcade' aquí ya que se maneja en MyHomePage
