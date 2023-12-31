@@ -119,6 +119,8 @@ void system_init()
   
   buttonState = LOW;
   lastButtonState = HIGH;
+  send_log = true;            // Send initial value on start
+  status_doc["status"]="power on";
 }
 
 //----------------------------------------------------------------------------------------------------------- reset_config

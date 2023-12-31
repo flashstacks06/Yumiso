@@ -16,6 +16,7 @@ extern const char* wild_topic;
 extern const char* gps_topic;
 extern const char* status_topic;
 extern const char* log_topic;
+extern const char* reporte_topic;
 
 extern char buffer_union_publish[FILE_SIZE]; 
 extern char buffer_union_subscribe[FILE_SIZE];
