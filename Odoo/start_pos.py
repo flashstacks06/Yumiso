@@ -28,16 +28,33 @@ def buscar_cliente_por_correo(correo_cliente):
     else:
         raise Exception(f'No se encontró un cliente con el correo: {correo_cliente}')
 
-def iniciar_sesion_pos(id_punto_de_venta):
+def obtener_id_sesion_abierta_o_abrir(id_punto_de_venta, user_id):
+    domain = [('config_id', '=', id_punto_de_venta), ('state', '=', 'opened')]
+    session_ids = models.execute_kw(db, uid, password, 'pos.session', 'search', [domain])
+    if session_ids:
+        return session_ids[0]
+    else:
+        # Si no se encuentra la sesión abierta, simplemente tomamos el primer ID de sesión existente
+        domain = [('config_id', '=', id_punto_de_venta)]
+        session_ids = models.execute_kw(db, uid, password, 'pos.session', 'search', [domain])
+        if session_ids:
+            return session_ids[0]
+        else:
+            # Si aún no hay sesión, intentamos abrir una nueva
+            return abrir_sesion_pos(id_punto_de_venta, user_id)
+
+def abrir_sesion_pos(id_punto_de_venta, user_id):
     session_data = {
         'config_id': id_punto_de_venta,
-        'user_id': uid,
+        'user_id': user_id,
     }
     session_id = models.execute_kw(db, uid, password, 'pos.session', 'create', [session_data])
-    print(session_id)
     return session_id
 
-def crear_orden_pos(session_id, cliente_id, productos_a_agregar, nombre_punto_de_venta):
+def crear_orden_pos(nombre_punto_de_venta, cliente_id, productos_a_agregar):
+    id_punto_de_venta = obtener_id_punto_de_venta_por_nombre(nombre_punto_de_venta)
+    session_id = obtener_id_sesion_abierta_o_abrir(id_punto_de_venta, uid)
+
     current_week_number = datetime.now().isocalendar()[1]
     order_name = f"{nombre_punto_de_venta}/{current_week_number}"
 
@@ -74,11 +91,10 @@ def crear_orden_pos(session_id, cliente_id, productos_a_agregar, nombre_punto_de
 
 # Ejemplo de uso
 try:
-    nombre_punto_de_venta = "Maquina 70"
-    id_punto_de_venta = obtener_id_punto_de_venta_por_nombre(nombre_punto_de_venta)
-    cliente_id = buscar_cliente_por_correo("route@yumiso.com")
+    nombre_punto_de_venta = "Maquina 71"
+    cliente_id = buscar_cliente_por_correo("arcade@yumiso.com")
     productos_a_agregar = {14: 2}  # Reemplazar con los IDs de producto reales y cantidades
-    orden_pos_id = crear_orden_pos(id_punto_de_venta, cliente_id, productos_a_agregar, nombre_punto_de_venta)
+    orden_pos_id = crear_orden_pos(nombre_punto_de_venta, cliente_id, productos_a_agregar)
     print(f'Orden de punto de venta creada con ID: {orden_pos_id}')
 except Exception as e:
     print(f"Error: {e}")

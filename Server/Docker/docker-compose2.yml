@@ -34,7 +34,6 @@ services:
     volumes:
       - node-red-data:/data
       - ./python-scripts:/python-scripts
-      - /var/www/html/img:/img
     networks:
       - iot
     restart: unless-stopped

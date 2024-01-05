@@ -42,8 +42,8 @@ url = 'http://137.184.86.135:8069'
 db = 'yumiso'
 username = 'info@inventoteca.com'
 password = 'Gr4nj3r04dm1n'
-order_id = 55  # Reemplazar con el ID real de la orden
-payment_amount = 10.0  # Reemplazar con el monto real a pagar
+order_id = 61  # Reemplazar con el ID real de la orden
+payment_amount = 2.0  # Reemplazar con el monto real a pagar
 
 try:
     result = pay_order(url, db, username, password, order_id, payment_amount)
