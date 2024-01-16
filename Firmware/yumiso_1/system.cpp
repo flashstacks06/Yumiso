@@ -1,11 +1,6 @@
 #include "system.h"
 
 
-
-// sd card
-//bool sd_ready = false;
-
-
 bool buttonState = LOW;
 bool lastButtonState = LOW;
 unsigned long buttonPressTime = 0;
@@ -37,35 +32,6 @@ String gps_str;
 
 // ------------------------------------- wifi flag
 bool server_running = false;
-
-uint32_t start_process_time;
-float litros;
-uint32_t acumulado_litros;
-uint32_t target_litros;
-float pulsos_litro = 1;
-float precio;
-float uprice = 9.8; //price of 1 litre
-float factor;
-uint32_t litros_check;
-uint32_t precio_check;
-
-uint32_t folio;
-uint32_t reporte;
-char b[200];
-char buff[200];
-int i;
-String jsonStr;
-unsigned int STATE_DISPLAY = 1;
-
-
-volatile bool display_reset = false;
-volatile bool encoder_reset = false;
-volatile bool start_print = false;
-volatile bool startCounting = false;
-volatile bool startFlowing = false;
-volatile bool stopFlowing = false;
-volatile bool readyToPrint = false;
-
 
 volatile uint32_t pesos;
 
@@ -116,11 +82,11 @@ void system_init()
   attachInterrupt(cont_premios, botonpress_premios, FALLING);
   pinMode(BT_REPORT, INPUT_PULLUP);
 
-  
+
   buttonState = LOW;
   lastButtonState = HIGH;
   send_log = true;            // Send initial value on start
-  status_doc["status"]="power on";
+  status_doc["status"] = "power on";
 }
 
 //----------------------------------------------------------------------------------------------------------- reset_config
@@ -172,6 +138,17 @@ void loadConfig()
 
   rtc_enable = obj["enable_rtc"].as<bool>();
   ntp_enable = obj["enable_ntp"].as<bool>();
+  flag_moneda = obj["total"].as<long>();
+  flag_premio = obj["gift"].as<long>();
+  flag_bolsa = (obj["total"].as<long>()) - (obj["init_bag"].as<long>());
+
+  if (obj["costo"].isNull())
+  {
+    obj["costo"] = 1;
+    saveConfig = true;
+  }
+  
+  costo = obj["costo"].as<long>();
 
   updated = obj["updated"].as<bool>();
 

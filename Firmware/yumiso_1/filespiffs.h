@@ -1,7 +1,7 @@
 #ifndef FILESPIFFS_H
 #define FILESPIFFS_H
 
-#define FILE_SIZE       1024
+#define FILE_SIZE       2048
 #define STATUS_SIZE     2048
 
 #include "system.h"

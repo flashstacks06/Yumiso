@@ -15,8 +15,15 @@ void loop()
   // PRead button for report
   buttonState = digitalRead(BT_REPORT);
   status_doc["maquina_ON"] = bool(digitalRead(I_maq_onoff));
-  status_doc["enlapsed_time"]= millis()/1000;
-  
+  status_doc["enlapsed_time"] = millis() / 1000;
+  status_doc["total"] = obj["total"].as<long>();
+  status_doc["init_bag"] = obj["init_bag"].as<long>();
+  status_doc["bag"] = flag_bolsa;
+  status_doc["games"] = obj["games"].as<long>();
+  status_doc["t_gift"] = obj["t_gift"].as<long>();
+  status_doc["i_gift"] = obj["i_gift"].as<long>();
+  status_doc["gift"] = obj["gift"].as<long>();
+
 
 
 
@@ -27,7 +34,7 @@ void loop()
 
     gps_update();
     read_clock();
-    
+
 
     // ----------------------------------------- check internet
 
@@ -48,17 +55,23 @@ void loop()
         // ------------------------------------------- Send STATUS
         //if (send_log == true)
         //{
-          //mqtt_send();
-          //send_log = false;
+        //mqtt_send();
+        //send_log = false;
         //}
 
         // ------------------------------------------- Send LIST
         //if (send_list == true)
         //{
-          //mqtt_send_list();
-          //send_list = false;
+        //mqtt_send_list();
+        //send_list = false;
         //}
       }
+    }
+
+    if (obj["test"].as<bool>() == true)
+    {
+      serializeJson(status_doc, Serial);
+      Serial.println();
     }
 
   }
@@ -73,7 +86,7 @@ void loop()
   if (saveConfig == true)  // Data change
   {
     saveConfig = false;
-   
+
     Serial.println("{\"upload_config\":true}");
     saveConfigData();
     loadConfig();

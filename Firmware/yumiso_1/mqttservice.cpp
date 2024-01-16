@@ -30,7 +30,7 @@ void mqtt_init()
     Mclient.setBufferSize(FILE_SIZE);
     Mclient.setServer(obj["mqtt_server"].as<const char*>(), obj["mqtt_port"].as<unsigned int>());
     Mclient.setCallback(callback);
-    Mclient.setKeepAlive(30);
+    Mclient.setKeepAlive((mainTime/1000)*3);
   }
 
 
@@ -154,7 +154,9 @@ void callback(char* topic, byte* payload, unsigned int length)
     // Recorrer cada par clave-valor en el JSON recibido
     for (JsonPair p : conf_mqtt_doc.as<JsonObject>())
     {
-      const char* key = p.key().c_str(); // Obtener la clave
+      //const char* key = p.key().c_str(); // Obtener la clave
+      String key;
+      key = p.key().c_str(); // Obtener la clave
       JsonVariant value = p.value();     // Obtener el valor
 
       // Verificar si la clave y el valor no son null
