@@ -20,11 +20,9 @@ void loop()
   status_doc["init_bag"] = obj["init_bag"].as<long>();
   status_doc["bag"] = flag_bolsa;
   status_doc["games"] = obj["games"].as<long>();
-  status_doc["t_gift"] = obj["t_gift"].as<long>();
-  status_doc["i_gift"] = obj["i_gift"].as<long>();
-  status_doc["gift"] = obj["gift"].as<long>();
-
-
+  status_doc["total_gift"] = obj["total_gift"].as<long>();
+  status_doc["init_gift"] = obj["init_gift"].as<long>();
+  status_doc["gift"] = flag_stock;
 
 
   // ---------------------------------------------------------------- MAIN TIME
@@ -90,7 +88,8 @@ void loop()
     Serial.println("{\"upload_config\":true}");
     saveConfigData();
     loadConfig();
-
+    send_log  = true;     // Enviar por MQTT status
+    mainRefresh = millis();
   }
 
 

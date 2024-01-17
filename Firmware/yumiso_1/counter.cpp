@@ -10,7 +10,9 @@ long costo;
 
 
 // ----------------------------------------- coin_cointer
-void IRAM_ATTR botonpress_monedas() {
+void IRAM_ATTR botonpress_monedas()
+{
+  mainRefresh = millis();
   flag_moneda++;
   obj["total"] = flag_moneda;
   flag_bolsa = (obj["total"].as<long>()) - (obj["init_bag"].as<long>());
@@ -24,7 +26,9 @@ void IRAM_ATTR botonpress_monedas() {
 
 
 // ----------------------------------------- gift_cointer
-void IRAM_ATTR botonpress_premios() {
+void IRAM_ATTR botonpress_premios()
+{
+  mainRefresh = millis();
   flag_premio++;
   obj["total_gift"] = flag_premio;
   flag_stock = (obj["t_gift"].as<long>()) - (obj["i_gift"].as<long>());

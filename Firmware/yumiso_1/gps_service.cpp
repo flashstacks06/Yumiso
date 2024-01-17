@@ -14,7 +14,10 @@ void save_gps_log()
 
     previousMillisGPS = millis();
     Serial.println(F("{\"gps_save\": \"saving\"}"));
-    saveConfig = true;
+    saveConfigData();
+    loadConfig();
+    Serial.println("{\"upload_config\":true}");
+    //saveConfig = true;
 
 
   }

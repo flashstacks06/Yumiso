@@ -139,8 +139,10 @@ void loadConfig()
   rtc_enable = obj["enable_rtc"].as<bool>();
   ntp_enable = obj["enable_ntp"].as<bool>();
   flag_moneda = obj["total"].as<long>();
-  flag_premio = obj["gift"].as<long>();
+  flag_premio = obj["total_gift"].as<long>();
   flag_bolsa = (obj["total"].as<long>()) - (obj["init_bag"].as<long>());
+  flag_stock = (obj["total_gift"].as<long>()) - (obj["init_gift"].as<long>());
+  
 
   if (obj["costo"].isNull())
   {
