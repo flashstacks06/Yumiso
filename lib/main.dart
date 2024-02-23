@@ -231,8 +231,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       style: TextStyle(fontSize: 18),
                     ),
                     style: ElevatedButton.styleFrom(
-                      primary: Colors.blue, // Button color
-                      onPrimary: Colors.white, // Text color
+                      foregroundColor: Colors.white, backgroundColor: Colors.blue, // Text color
                       minimumSize: const Size.fromHeight(50),
                     ),
                   ),

@@ -34,7 +34,7 @@ MqttServerClient createRandomMqttClient(String broker, int port) {
 class _QRCodeScannerAppState extends State<QRCodeScannerApp> {
   late QRViewController _controller;
   final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
-  String? qrId = '0'; // Variable para almacenar el número de ID del código QR
+  String qrId = ''; // Variable para almacenar el número de ID del código QR
   final MqttServerClient mqttClient = createRandomMqttClient('137.184.86.135', 1883);
   bool mqttConnected = false; // Bandera para verificar la conexión MQTT
 
@@ -67,7 +67,7 @@ class _QRCodeScannerAppState extends State<QRCodeScannerApp> {
     builder.addString(textoEspecifico);
     final payload = builder.payload;
     
-    if (mqttConnected && qrId != null && widget.mqttResponse == 'Route') {
+    if (mqttConnected && qrId.isNotEmpty && widget.mqttResponse == 'Route') {
       mqttClient.publishMessage('maquinas/$qrId/in/reporte', MqttQos.atMostOnce, payload!);
     }
   }
@@ -92,6 +92,33 @@ class _QRCodeScannerAppState extends State<QRCodeScannerApp> {
                   cutOutSize: 300,
                 ),
                 onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      onChanged: (value) {
+                        setState(() {
+                          qrId = value;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'QR ID',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 8.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      _navegarSegunMqttResponse();
+                    },
+                    child: Text('Confirmar'),
+                  ),
+                ],
               ),
             ),
             Align(
@@ -124,9 +151,9 @@ class _QRCodeScannerAppState extends State<QRCodeScannerApp> {
   }
 
   void _onQRViewCreated(QRViewController controller) {
-    setState(() {
-      _controller = controller;
-      _controller.scannedDataStream.listen((scanData) {
+    _controller = controller;
+    _controller.scannedDataStream.listen((scanData) {
+      if (qrId.isEmpty) {
         final code = scanData.code;
         try {
           final decodedData = json.decode(code!);
@@ -143,24 +170,24 @@ class _QRCodeScannerAppState extends State<QRCodeScannerApp> {
         } catch (e) {
           print('Error decoding QR code: $e');
         }
-      });
+      }
     });
   }
 
   void _navegarSegunMqttResponse() {
-    if (qrId != null) {
+    if (qrId.isNotEmpty) {
       switch (widget.mqttResponse) {
         case 'Route':
           enviarDatosMQTT();
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => RouteCheck(userEmail: widget.userEmail, qrId: qrId!,)),
+            MaterialPageRoute(builder: (context) => RouteCheck(userEmail: widget.userEmail, qrId: qrId)),
           );
           break;
         case 'Maintenance':
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => Maintenance1(userEmail: widget.userEmail, qrId: qrId!,)),
+            MaterialPageRoute(builder: (context) => Maintenance1(userEmail: widget.userEmail, qrId: qrId)),
           );
           break;
         // No se necesita manejar 'Arcade' aquí ya que se maneja en MyHomePage

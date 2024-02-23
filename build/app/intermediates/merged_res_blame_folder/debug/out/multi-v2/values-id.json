@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.testt.app-mergeDebugResources-25:/values-id/values-id.xml",
+            "outputFile": "com.example.testt.app-mergeDebugResources-20:/values-id/values-id.xml",
             "map": [
                 {
                     "source": "C:\\Users\\carl2\\.gradle\\caches\\transforms-3\\f623af95d3bfad0780edcceda9083b8b\\transformed\\jetified-zxing-android-embedded-4.3.0\\res\\values-id\\values-id.xml",

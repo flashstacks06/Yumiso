@@ -5,17 +5,17 @@ import 'dart:convert';
 // Importa las páginas a las que necesitas navegar
 import 'route_moneybag.dart';
 
-// Asegúrate de que estas importaciones coincidan con los nombres de archivo y clase en tu proyecto
-
 class QRCodeScannerApp_m extends StatefulWidget {
-  final String userEmail;    // Correo electrónico del usuario
+  final String userEmail;
   final String qrId;
   final String combinedValues;
 
-  QRCodeScannerApp_m({Key? key, 
-  required this.userEmail, 
-  required this.qrId,
-  required this.combinedValues}) : super(key: key);
+  QRCodeScannerApp_m({
+    Key? key, 
+    required this.userEmail, 
+    required this.qrId,
+    required this.combinedValues,
+  }) : super(key: key);
   
 
   @override
@@ -25,12 +25,13 @@ class QRCodeScannerApp_m extends StatefulWidget {
 class _QRCodeScannerAppState extends State<QRCodeScannerApp_m> {
   late QRViewController _controller;
   final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
-  String? qrId_m = '0'; // Variable para almacenar el número de ID del código QR
-  //late String bagid;
+  String? qrId_m = '0'; 
+  TextEditingController _manualIdController = TextEditingController(); // Controlador para el campo de texto manual
 
   @override
   void dispose() {
     _controller.dispose();
+    _manualIdController.dispose(); // Dispose del controlador de texto manual
     super.dispose();
   }
 
@@ -43,17 +44,37 @@ class _QRCodeScannerAppState extends State<QRCodeScannerApp_m> {
           children: [
             Expanded(
               flex: 5,
-              child: QRView(
-                key: _qrKey,
-                onQRViewCreated: _onQRViewCreated,
-                overlay: QrScannerOverlayShape(
-                  borderColor: Colors.red,
-                  borderRadius: 10,
-                  borderLength: 30,
-                  borderWidth: 10,
-                  cutOutSize: 300,
-                ),
-                onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: QRView(
+                      key: _qrKey,
+                      onQRViewCreated: _onQRViewCreated,
+                      overlay: QrScannerOverlayShape(
+                        borderColor: Colors.red,
+                        borderRadius: 10,
+                        borderLength: 30,
+                        borderWidth: 10,
+                        cutOutSize: 300,
+                      ),
+                      onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      controller: _manualIdController,
+                      decoration: InputDecoration(
+                        hintText: 'Ingresa el ID manualmente',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: _enviarIdBolsa, // Acción del botón para enviar el ID
+                    child: Text('Enviar ID de Bolsa'),
+                  ),
+                ],
               ),
             ),
             Align(
@@ -96,7 +117,6 @@ class _QRCodeScannerAppState extends State<QRCodeScannerApp_m> {
               decodedData.containsKey('bag') &&
               decodedData['bag'] is String) {
             qrId_m = decodedData['bag'];
-            print('ID Moneybag: $qrId_m');
             setState(() {});
             Navigator.pushReplacement(
               context,
@@ -112,10 +132,23 @@ class _QRCodeScannerAppState extends State<QRCodeScannerApp_m> {
     });
   }
 
-
   void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
     if (!p) {
       // Handle permission denied
+    }
+  }
+
+  void _enviarIdBolsa() {
+    // Obtener el ID manualmente ingresado desde el controlador
+    final manualId = _manualIdController.text;
+    if (manualId.isNotEmpty) {
+      setState(() {
+        qrId_m = manualId;
+      });
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MoneybagPage(userEmail: widget.userEmail,qrId: widget.qrId, combinedValues: widget.combinedValues,bagid: qrId_m!)),
+      );
     }
   }
 }

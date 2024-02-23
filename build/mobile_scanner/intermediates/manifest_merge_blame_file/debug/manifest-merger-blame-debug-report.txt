@@ -4,12 +4,19 @@
 4
 5    <uses-sdk
 6        android:minSdkVersion="21"
-6-->C:\Users\carl2\AppData\Local\Pub\Cache\hosted\pub.dev\mobile_scanner-3.4.1\android\src\main\AndroidManifest.xml
+6-->C:\Users\carl2\AppData\Local\Pub\Cache\hosted\pub.dev\mobile_scanner-3.5.7\android\src\main\AndroidManifest.xml
 7        android:targetSdkVersion="21" />
-7-->C:\Users\carl2\AppData\Local\Pub\Cache\hosted\pub.dev\mobile_scanner-3.4.1\android\src\main\AndroidManifest.xml
+7-->C:\Users\carl2\AppData\Local\Pub\Cache\hosted\pub.dev\mobile_scanner-3.5.7\android\src\main\AndroidManifest.xml
 8
 9    <uses-permission android:name="android.permission.CAMERA" />
-9-->C:\Users\carl2\AppData\Local\Pub\Cache\hosted\pub.dev\mobile_scanner-3.4.1\android\src\main\AndroidManifest.xml:4:5-65
-9-->C:\Users\carl2\AppData\Local\Pub\Cache\hosted\pub.dev\mobile_scanner-3.4.1\android\src\main\AndroidManifest.xml:4:22-62
+9-->C:\Users\carl2\AppData\Local\Pub\Cache\hosted\pub.dev\mobile_scanner-3.5.7\android\src\main\AndroidManifest.xml:4:5-65
+9-->C:\Users\carl2\AppData\Local\Pub\Cache\hosted\pub.dev\mobile_scanner-3.5.7\android\src\main\AndroidManifest.xml:4:22-62
 10
-11</manifest>
+11    <uses-feature
+11-->C:\Users\carl2\AppData\Local\Pub\Cache\hosted\pub.dev\mobile_scanner-3.5.7\android\src\main\AndroidManifest.xml:5:5-85
+12        android:name="android.hardware.camera"
+12-->C:\Users\carl2\AppData\Local\Pub\Cache\hosted\pub.dev\mobile_scanner-3.5.7\android\src\main\AndroidManifest.xml:5:19-57
+13        android:required="false" />
+13-->C:\Users\carl2\AppData\Local\Pub\Cache\hosted\pub.dev\mobile_scanner-3.5.7\android\src\main\AndroidManifest.xml:5:58-82
+14
+15</manifest>

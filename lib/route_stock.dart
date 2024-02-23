@@ -12,6 +12,7 @@ class RouteStock extends StatefulWidget {
   _RouteStockState createState() => _RouteStockState();
 }
 
+
 class _RouteStockState extends State<RouteStock> {
   final List<TextEditingController> stockTextControllers = List.generate(5, (_) => TextEditingController());
   final List<TextEditingController> refillTextControllers = List.generate(5, (_) => TextEditingController());

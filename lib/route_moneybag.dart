@@ -202,7 +202,7 @@ void enviarDatosMQTT() {
                     onPressed: enviarDatosMQTT,
                     child: const Text('Finish'),
                     style: ElevatedButton.styleFrom(
-                      primary: Colors.blue,
+                      backgroundColor: Colors.blue,
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     ),
                   ),
