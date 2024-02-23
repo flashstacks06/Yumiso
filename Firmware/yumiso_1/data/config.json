@@ -23,5 +23,6 @@
   "init_bag": 78014,
   "gift": 0,
   "enable_rtc": false,
-  "enable_ntp": true
+  "enable_ntp": true,
+  "costo": 5
 }

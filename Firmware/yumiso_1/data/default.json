@@ -19,9 +19,10 @@
   "dayOff" : 0,
   "lat": 19.03793, 
   "lon": -98.20346,
-  "total":0,
-  "init_bag": 0,
+  "total":78021,
+  "init_bag": 78014,
   "gift": 0,
   "enable_rtc": false,
-  "enable_ntp": true
+  "enable_ntp": true,
+  "costo": 5
 }
