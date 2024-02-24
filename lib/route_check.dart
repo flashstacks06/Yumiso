@@ -4,6 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'route_stock.dart'; // Importa RouteStock
+import 'stockmqtt.dart';
 
 class RouteCheck extends StatefulWidget {
   final String userEmail;
@@ -113,7 +114,7 @@ class _RouteCheckState extends State<RouteCheck> {
       );
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => RouteStock(userEmail: widget.userEmail,qrId: widget.qrId,),),); 
+        MaterialPageRoute(builder: (context) => Routestock2(userEmail: widget.userEmail,qrId: widget.qrId,),),); 
       
     } else {
       Fluttertoast.showToast(
@@ -196,7 +197,7 @@ class _RouteCheckState extends State<RouteCheck> {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: enviarDatosMQTT,
-                  child: const Text('Send'),
+                  child: const Text('Enviar'),
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
                     backgroundColor: Colors.blue,

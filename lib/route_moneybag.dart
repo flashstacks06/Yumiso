@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mqtt_client/mqtt_client.dart';
@@ -75,7 +76,9 @@ class _MoneybagPageState extends State<MoneybagPage> {
     try {
       await mqttClient.connect();
     } catch (e) {
-      print('Error al conectarse a MQTT: $e');
+      if (kDebugMode) {
+        print('Error al conectarse a MQTT: $e');
+      }
     }
   }
 

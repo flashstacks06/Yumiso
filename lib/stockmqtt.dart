@@ -4,35 +4,19 @@ import 'package:mqtt_client/mqtt_server_client.dart';
 import 'dart:convert';
 import 'package:uuid/uuid.dart';
 
-void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'MQTT Data Table',
-      theme: ThemeData(
-        primarySwatch: Colors.red,
-      ),
-      home: MqttDataTablePage(userEmail: 'correo@example.com', qrId: 'ID12345'),
-
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-class MqttDataTablePage extends StatefulWidget {
+class Routestock2 extends StatefulWidget {
 
   final String userEmail;
   final String qrId;
 
-  MqttDataTablePage({Key? key, required this.userEmail, required this.qrId}) : super(key: key);
+  Routestock2({Key? key, required this.userEmail, required this.qrId}) : super(key: key);
 
   @override
   _MqttDataTablePageState createState() => _MqttDataTablePageState();
 }
 
-class _MqttDataTablePageState extends State<MqttDataTablePage> {
+class _MqttDataTablePageState extends State<Routestock2> {
   List<Map<String, dynamic>> data = [];
   late MqttServerClient client;
   final String server = '137.184.86.135';
@@ -80,18 +64,16 @@ class _MqttDataTablePageState extends State<MqttDataTablePage> {
     final String message = mqtt.MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
 
     List<dynamic> newEntries = json.decode(message);
-    if (newEntries is List) {
-      newEntries.sort((a, b) => (a['product_id'] ?? 0).compareTo(b['product_id'] ?? 0));
+    newEntries.sort((a, b) => (a['product_id'] ?? 0).compareTo(b['product_id'] ?? 0));
 
-      setState(() {
-        data = newEntries.cast<Map<String, dynamic>>();
-      });
+    setState(() {
+      data = newEntries.cast<Map<String, dynamic>>();
+    });
     }
-  }
 
   Future<void> _onRefresh() async {
     _sendMessage();
-    await Future.delayed(Duration(seconds: 2)); // Simula un retraso
+    await Future.delayed(const Duration(seconds: 2)); // Simula un retraso
   }
 
   @override
@@ -109,30 +91,26 @@ class _MqttDataTablePageState extends State<MqttDataTablePage> {
                   padding: EdgeInsets.all(16.0),
                   child: Text(
                     'Stock and Refill',
-                    style: TextStyle(fontSize: 28, color: Colors.white, fontFamily: 'Cabin'),
+                    style: TextStyle(fontSize: 32, color: Colors.white, fontFamily: 'Cabin'),
                   ),
                 ),
                 buildSection('Stock', data),
                 const SizedBox(height: 40),
                 buildSection('Refill', data),
                 const SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.black), // Borde negro
-                      borderRadius: BorderRadius.circular(5), // Bordes redondeados
-                    ),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Agregar aquí la lógica para enviar la información de "Refill"
-                        // Puedes llamar a una función o mostrar un diálogo de confirmación
-                        // según tus necesidades.
-                      },
-                      child: Text('Enviar', style: TextStyle(color: Colors.white)), // Texto blanco
-                    ),
-                  ),
+                const Padding(
+                  padding: EdgeInsets.all(16.0),              
                 ),
+                const SizedBox(height: 30),
+                ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.blue,
+                  ),
+                  child: const Text('Enviar')
+                ),
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -156,33 +134,26 @@ class _MqttDataTablePageState extends State<MqttDataTablePage> {
         ListView.builder(
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),
-          itemCount: data.length,
+          itemCount: (data.length / 2).ceil(), // Adjust the item count
           itemBuilder: (context, index) {
-            if (index.isOdd) {
-              return Divider(); // Agregar un divisor entre filas
-            }
-            final product1 = data[index];
-            final product2 = index + 1 < data.length ? data[index + 1] : null;
+            // Calculate the actual index of the data list
+            int dataIndex = index * 2; // Multiply index by 2
+            final product1 = data[dataIndex];
+            final product2 = dataIndex + 1 < data.length ? data[dataIndex + 1] : null;
 
-            if (product2 == null) {
-              return Center(
-                child: product1 != null ? buildProduct(product1) : SizedBox(),
-              );
-            } else {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  product1 != null ? buildProduct(product1) : SizedBox(),
-                  product2 != null ? buildProduct(product2) : SizedBox(),
-                ],
-              );
-              
-            }
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                buildProduct(product1),
+                product2 != null ? buildProduct(product2) : SizedBox(width: 130), // Keep space for symmetry
+              ],
+            );
           },
         ),
       ],
     );
   }
+
 
   Widget buildProduct(Map<String, dynamic> product) {
     final String productName = product['product_name'] ?? '';

@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart'; // Importa fluttertoast
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
@@ -16,8 +16,8 @@ class Maintenance1 extends StatefulWidget {
 
 MqttServerClient createRandomMqttClient(String broker, int port) {
   final Random random = Random();
-  final int randomNumber = random.nextInt(10000); // Genera un número aleatorio
-  final String clientId = 'mqtt_client_$randomNumber'; // Nombre de cliente único
+  final int randomNumber = random.nextInt(10000);
+  final String clientId = 'mqtt_client_$randomNumber';
 
   final MqttServerClient mqttClient = MqttServerClient.withPort(broker, clientId, port);
 
@@ -25,19 +25,21 @@ MqttServerClient createRandomMqttClient(String broker, int port) {
 }
 
 class _Maintenance1State extends State<Maintenance1> {
-  List<bool> repairChecked = List.generate(3, (index) => false);
-  List<bool> partReplacementChecked = List.generate(3, (index) => false);
-  List<int> selectionMatrix = List.generate(6, (index) => 0);
+  List<String> titles = ['Coin Selector', 'Motherboard', 'Joystick', 'Claw', 'Lights'];
 
-  // Configura el cliente MQTT
-  
+  List<bool> repairChecked = List.generate(5, (index) => false);
+  List<bool> partReplacementChecked = List.generate(5, (index) => false);
+
+  // Nueva matriz para almacenar los valores personalizados de reparación y reemplazo
+  List<int> customValues = [9, 11, 10, 17, 19, 5, 7, 8, 18, 20]; // Define tus valores aquí
+
+  List<int> selectionMatrix = List.generate(10, (index) => 0);
+
   final MqttServerClient mqttClient = createRandomMqttClient('137.184.86.135', 1883);
 
   @override
   void initState() {
     super.initState();
-
-    // Conecta al servidor MQTT
     _connectToMQTT();
   }
 
@@ -79,27 +81,26 @@ class _Maintenance1State extends State<Maintenance1> {
     );
   }
 
-void mostrarAlerta(String title, String message) {
-  Fluttertoast.showToast(
-    msg: message,
-    toastLength: Toast.LENGTH_SHORT,
-    gravity: ToastGravity.BOTTOM,
-    timeInSecForIosWeb: 1,
-    backgroundColor: Colors.green, // Color de fondo de la alerta
-    textColor: Colors.white, // Color del texto de la alerta
-    fontSize: 16.0,
-  );
-}
+  void mostrarAlerta(String title, String message) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    List<String> titles = ['Coin Selector', 'Motherboard', 'Joystick'];
-
     List<Widget> repairWidgets = [];
     List<Widget> partReplacementWidgets = [];
     List<Widget> images = [];
 
-    for (var i = 0; i < 3; i++) {
+    // Generar widgets para los productos
+    for (var i = 0; i < titles.length; i++) {
       images.add(
         Column(
           children: [
@@ -118,68 +119,30 @@ void mostrarAlerta(String title, String message) {
       );
 
       repairWidgets.add(
-        Column(
-          children: [
-            largeCheckbox(
-              repairChecked[i],
-              (value) {
-                setState(() {
-                  repairChecked[i] = value!;
-                  int repairValue;
-                  switch (i) {
-                    case 0:
-                      repairValue = 9;
-                      break;
-                    case 1:
-                      repairValue = 11;
-                      break;
-                    case 2:
-                      repairValue = 10;
-                      break;
-                    default:
-                      repairValue = 0;
-                      break;
-                  }
-                  selectionMatrix[i] = value ? repairValue : 0;
-                });
-              },
-              i,
-              'Repair',
-            ),
-          ],
+        largeCheckbox(
+          repairChecked[i],
+          (value) {
+            setState(() {
+              repairChecked[i] = value!;
+              selectionMatrix[i] = value ? customValues[i] : 0;
+            });
+          },
+          i,
+          'Repair',
         ),
       );
 
       partReplacementWidgets.add(
-        Column(
-          children: [
-            largeCheckbox(
-              partReplacementChecked[i],
-              (value) {
-                setState(() {
-                  partReplacementChecked[i] = value!;
-                  int replacementValue;
-                  switch (i) {
-                    case 0:
-                      replacementValue = 5;
-                      break;
-                    case 1:
-                      replacementValue = 7;
-                      break;
-                    case 2:
-                      replacementValue = 8;
-                      break;
-                    default:
-                      replacementValue = 0;
-                      break;
-                  }
-                  selectionMatrix[i + 3] = value ? replacementValue : 0;
-                });
-              },
-              i,
-              'Part Replacement',
-            ),
-          ],
+        largeCheckbox(
+          partReplacementChecked[i],
+          (value) {
+            setState(() {
+              partReplacementChecked[i] = value!;
+              selectionMatrix[i + titles.length] = value ? customValues[i + titles.length] : 0;
+            });
+          },
+          i,
+          'Part Replacement',
         ),
       );
     }
@@ -196,44 +159,30 @@ void mostrarAlerta(String title, String message) {
                 style: TextStyle(fontSize: 36, fontFamily: 'Cabin', color: Colors.white),
               ),
               SizedBox(height: 30),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: images,
-              ),
+              for (var i = 0; i < titles.length; i++)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    images[i],
+                    repairWidgets[i],
+                    partReplacementWidgets[i],
+                  ],
+                ),
               SizedBox(height: 20),
-              Text(
-                'Repair',
-                style: TextStyle(fontSize: 28, fontFamily: 'Cabin', color: Colors.white),
-              ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: repairWidgets,
-              ),
-              Text(
-                'Part Replacement',
-                style: TextStyle(fontSize: 28, fontFamily: 'Cabin', color: Colors.white),
-              ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: partReplacementWidgets,
-              ),
               ElevatedButton(
                 onPressed: () {
                   print('Correo Electrónico: ${widget.userEmail}');
                   print('QR ID: ${widget.qrId}');
                   print('Selecciones: $selectionMatrix');
-                  enviarDatosMQTT(); // Envía los datos al tópico MQTT
-                  
-                  // Muestra una alerta según si se envían los datos o no
+                  enviarDatosMQTT();
+
                   if (mqttClient.connectionStatus!.state == MqttConnectionState.connected) {
                     mostrarAlerta('Orden creada', 'La orden de mantenimiento se ha creado correctamente.');
                   } else {
                     mostrarAlerta('Error', 'No se pudieron enviar los datos a MQTT debido a una conexión no activa.');
                   }
                 },
-                child: Text('Finish'),
+                child: const Text('Finalizar'),
               ),
             ],
           ),
