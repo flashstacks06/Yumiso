@@ -77,6 +77,7 @@ void system_init()
   pinMode(cont_monedas, INPUT_PULLUP);
   pinMode(cont_premios, INPUT_PULLUP);
   pinMode(I_maq_onoff, INPUT);               //add current thread to WDT watch
+  delay(100);
 
   attachInterrupt(cont_monedas, botonpress_monedas, FALLING);
   attachInterrupt(cont_premios, botonpress_premios, FALLING);
@@ -142,15 +143,17 @@ void loadConfig()
   flag_premio = obj["total_gift"].as<long>();
   flag_bolsa = (obj["total"].as<long>()) - (obj["init_bag"].as<long>());
   flag_stock = (obj["total_gift"].as<long>()) - (obj["init_gift"].as<long>());
-  
 
   if (obj["costo"].isNull())
   {
     obj["costo"] = 1;
     saveConfig = true;
   }
-  
+
   costo = obj["costo"].as<long>();
+  flag_games = flag_bolsa / costo;
+  obj["games"] = flag_games;
+  obj["gift"] = flag_stock;
 
   updated = obj["updated"].as<bool>();
 

@@ -12,7 +12,7 @@ void setup()
 // ------------------------------------------------------ loop
 void loop()
 {
-  // PRead button for report
+  // Read button for report
   buttonState = digitalRead(BT_REPORT);
   status_doc["maquina_ON"] = bool(digitalRead(I_maq_onoff));
   status_doc["enlapsed_time"] = millis() / 1000;
@@ -48,6 +48,15 @@ void loop()
           send_log = false;
           mqtt_send();
           status_doc["status"] = "running";
+        }
+
+        // ------------------------------------------- Send Log STATUS
+        if (send_reporte  == true)
+        {
+          //mqtt_send_file(file_to_send);
+          send_reporte = false;
+          mqtt_send_reporte();
+          status_doc["status"] = "report";
         }
 
         // ------------------------------------------- Send STATUS
